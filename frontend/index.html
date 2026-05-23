@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusCore Systems - Plataforma Inteligente de Optimización Operacional</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons (CDN) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <div class="logo-icon"></div>
+                <h2>NEXUSCORE</h2>
+                <span>SYSTEMS</span>
+            </div>
+            
+            <nav class="nav-links">
+                <button class="nav-item active" data-target="dashboard-section" id="nav-dash">
+                    <i data-lucide="layout-dashboard"></i> Panel Principal
+                </button>
+                <button class="nav-item" data-target="knapsack-section" id="nav-knap">
+                    <i data-lucide="server"></i> Carga de Servidores
+                </button>
+                <button class="nav-item" data-target="routing-section" id="nav-routing">
+                    <i data-lucide="git-fork"></i> Ruta de Latencia
+                </button>
+                <button class="nav-item" data-target="marketing-section" id="nav-marketing">
+                    <i data-lucide="trending-up"></i> Presupuesto Marketing
+                </button>
+                <button class="nav-item" data-target="report-section" id="nav-report">
+                    <i data-lucide="file-text"></i> Reporte y Conclusiones
+                </button>
+            </nav>
+            
+            <div class="status-indicator">
+                <span class="pulse-dot online"></span>
+                <span class="status-text">Backend: Conectando...</span>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-title">
+                    <h1 id="page-title">Panel de Control General</h1>
+                    <p id="page-subtitle">Monitoreo de parámetros y optimización cuantitativa en tiempo real.</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-secondary" id="btn-reset-defaults">
+                        <i data-lucide="rotate-ccw"></i> Valores por Defecto
+                    </button>
+                    <button class="btn-primary" id="btn-global-optimize">
+                        <i data-lucide="zap"></i> Optimizar Todo
+                    </button>
+                </div>
+            </header>
+
+            <!-- 1. DASHBOARD OVERVIEW SECTION -->
+            <section id="dashboard-section" class="content-section active">
+                <div class="summary-cards">
+                    <div class="card glass">
+                        <div class="card-icon blue"><i data-lucide="database"></i></div>
+                        <div class="card-info">
+                            <h3>Estabilidad Servidores</h3>
+                            <div class="card-val" id="dash-stability-val">-</div>
+                            <span class="card-lbl" id="dash-stability-lbl">Carga óptima</span>
+                        </div>
+                    </div>
+                    <div class="card glass">
+                        <div class="card-icon purple"><i data-lucide="activity"></i></div>
+                        <div class="card-info">
+                            <h3>Latencia Crítica</h3>
+                            <div class="card-val" id="dash-latency-val">-</div>
+                            <span class="card-lbl" id="dash-latency-lbl">Ruta de distribución</span>
+                        </div>
+                    </div>
+                    <div class="card glass">
+                        <div class="card-icon green"><i data-lucide="users"></i></div>
+                        <div class="card-info">
+                            <h3>Usuarios Adquiridos</h3>
+                            <div class="card-val" id="dash-users-val">-</div>
+                            <span class="card-lbl" id="dash-users-lbl">Retorno de inversión</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="grid-card glass large">
+                        <div class="grid-card-header">
+                            <h2><i data-lucide="pocket"></i> Descripción del Sistema</h2>
+                        </div>
+                        <div class="grid-card-body">
+                            <p>Bienvenido al <b>Sistema de Optimización Operacional de NexusCore Systems</b>. Esta herramienta automatiza los cálculos matemáticos de métodos cuantitativos exigidos por el departamento de operaciones:</p>
+                            <ul class="features-list">
+                                <li>
+                                    <strong>Programación Dinámica (Mochila 0/1)</strong>: Distribuye microservicios en un host maestro para maximizar la estabilidad con límites rígidos de hardware.
+                                </li>
+                                <li>
+                                    <strong>Programación Dinámica Backward (Etapas)</strong>: Encuentra la ruta más eficiente en una topología de red distribuida regionalmente para minimizar la latencia.
+                                </li>
+                                <li>
+                                    <strong>Optimización No Lineal</strong>: Modela el crecimiento de usuarios frente al presupuesto publicitario, balanceando el ROI ante rendimientos marginales decrecientes.
+                                </li>
+                                <li>
+                                    <strong>Dictamen Experto de IA</strong>: Contextualiza los números mediante la API de Groq emulando las decisiones estratégicas de un CTO corporativo.
+                                </li>
+                            </ul>
+                            <div class="call-to-action">
+                                <p>Presione el botón "Optimizar Todo" arriba o explore cada sección en el panel lateral para modificar los parámetros interactivos en tiempo real.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid-card glass small">
+                        <div class="grid-card-header">
+                            <h2><i data-lucide="info"></i> Variables de Infraestructura</h2>
+                        </div>
+                        <div class="grid-card-body">
+                            <div class="mini-data-list">
+                                <div class="mini-data-item">
+                                    <span>Servidor Maestro (RAM Máx.)</span>
+                                    <strong id="mini-ram-cap">16 GB</strong>
+                                </div>
+                                <div class="mini-data-item">
+                                    <span>Microservicios Cargados</span>
+                                    <strong id="mini-ms-count">4</strong>
+                                </div>
+                                <div class="mini-data-item">
+                                    <span>Nodos de Red Distribuidos</span>
+                                    <strong id="mini-nodes-count">10 (A - J)</strong>
+                                </div>
+                                <div class="mini-data-item">
+                                    <span>Presupuesto Marketing mensual</span>
+                                    <strong id="mini-mkt-budget">$10,000.00</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. KNAPSACK SECTION -->
+            <section id="knapsack-section" class="content-section">
+                <div class="section-grid">
+                    <!-- Configuración -->
+                    <div class="config-card glass">
+                        <h2><i data-lucide="sliders"></i> Parámetros de Servidores</h2>
+                        <div class="form-group">
+                            <label for="knap-capacity">Capacidad de RAM Servidor Maestro (GB):</label>
+                            <input type="number" id="knap-capacity" value="16" min="1" max="128">
+                        </div>
+                        
+                        <h3>Lista de Microservicios</h3>
+                        <div class="microservices-table-wrapper">
+                            <table id="ms-inputs-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Microservicio</th>
+                                        <th>RAM (GB)</th>
+                                        <th>Prioridad</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ms-inputs-body">
+                                    <!-- Creados dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <button class="btn-secondary btn-sm" id="btn-add-ms">
+                            <i data-lucide="plus"></i> Agregar Microservicio
+                        </button>
+                        
+                        <button class="btn-primary w-full mt-20" id="btn-optimize-knap">
+                            <i data-lucide="play"></i> Optimizar Servidor
+                        </button>
+                    </div>
+
+                    <!-- Resultados -->
+                    <div class="results-card glass">
+                        <h2><i data-lucide="bar-chart-2"></i> Reporte del Despliegue</h2>
+                        <div class="metrics-row">
+                            <div class="metric-pill">
+                                <span>Estabilidad Máxima</span>
+                                <strong id="knap-max-value">-</strong>
+                            </div>
+                            <div class="metric-pill">
+                                <span>Memoria RAM Utilizada</span>
+                                <strong id="knap-used-weight">-</strong>
+                            </div>
+                        </div>
+                        
+                        <h3>Microservicios Seleccionados</h3>
+                        <div class="selected-list" id="knap-selected-list">
+                            <!-- Creado dinámicamente -->
+                            <p class="placeholder-text">Presione "Optimizar Servidor" para calcular...</p>
+                        </div>
+
+                        <h3>Matriz de Programación Dinámica (Paso a Paso)</h3>
+                        <div class="table-scroll-container">
+                            <table class="matrix-table" id="knap-matrix-table">
+                                <thead>
+                                    <tr id="knap-matrix-headers"></tr>
+                                </thead>
+                                <tbody id="knap-matrix-body">
+                                    <!-- Relleno dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. ROUTING SECTION -->
+            <section id="routing-section" class="content-section">
+                <div class="section-grid">
+                    <!-- Configuración -->
+                    <div class="config-card glass">
+                        <h2><i data-lucide="git-branch"></i> Topología y Latencias</h2>
+                        <p class="desc-text">Ingrese los nodos de la red ordenados por etapas secuenciales. El sistema encontrará el camino crítico usando DP Backward.</p>
+                        
+                        <div class="form-group">
+                            <label>Estructura de Etapas (Editar Nodos):</label>
+                            <div id="routing-stages-inputs">
+                                <!-- Creado dinámicamente -->
+                            </div>
+                        </div>
+                        
+                        <h3>Conexiones y Latencias (ms)</h3>
+                        <div class="connections-editor-wrapper">
+                            <div id="connections-editor-list">
+                                <!-- Conexiones editables -->
+                            </div>
+                        </div>
+                        
+                        <button class="btn-primary w-full mt-20" id="btn-optimize-routing">
+                            <i data-lucide="play"></i> Calcular Ruta Crítica
+                        </button>
+                    </div>
+
+                    <!-- Resultados -->
+                    <div class="results-card glass">
+                        <h2><i data-lucide="git-commit"></i> Mapa de Ruta Óptimo</h2>
+                        <div class="metrics-row">
+                            <div class="metric-pill">
+                                <span>Latencia Total Mínima</span>
+                                <strong id="routing-min-cost">-</strong>
+                            </div>
+                            <div class="metric-pill">
+                                <span>Ruta Óptima Calculada</span>
+                                <strong id="routing-optimal-path">-</strong>
+                            </div>
+                        </div>
+                        
+                        <h3>Visualización de la Red de Distribución</h3>
+                        <div class="canvas-container">
+                            <canvas id="routing-canvas"></canvas>
+                        </div>
+
+                        <h3>Tablas de Decisión Backward por Etapa</h3>
+                        <div id="routing-stage-tables-container">
+                            <p class="placeholder-text">Presione "Calcular Ruta Crítica" para procesar las etapas...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. MARKETING SECTION -->
+            <section id="marketing-section" class="content-section">
+                <div class="section-grid">
+                    <!-- Configuración -->
+                    <div class="config-card glass">
+                        <h2><i data-lucide="sliders-horizontal"></i> Parámetros de Marketing</h2>
+                        <p class="desc-text">Establezca los coeficientes de la función no lineal de adquisición mensual de usuarios:</p>
+                        <div class="formula-box">
+                            $$f(x_1, x_2) = c_1 x_1 + c_2 x_2 - a_1 x_1^2 - a_2 x_2^2$$
+                            <span>Sujeto a: $x_1 + x_2 \le B$</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="mkt-budget">Presupuesto Máximo mensual (B en Miles $):</label>
+                            <input type="number" id="mkt-budget" value="10.0" min="0.1" step="0.1">
+                            <span class="input-hint">Ej: 10.0 representa $10,000 USD</span>
+                        </div>
+
+                        <div class="coefficient-grid">
+                            <div class="coef-section">
+                                <h4>Creadores de Contenido (x1)</h4>
+                                <div class="form-group">
+                                    <label for="mkt-c1">Coef. Lineal (c1):</label>
+                                    <input type="number" id="mkt-c1" value="4.0" step="0.1">
+                                </div>
+                                <div class="form-group">
+                                    <label for="mkt-a1">Coef. Saturación (a1):</label>
+                                    <input type="number" id="mkt-a1" value="0.2" min="0.0" step="0.05">
+                                </div>
+                            </div>
+                            <div class="coef-section">
+                                <h4>Anuncios Programáticos (x2)</h4>
+                                <div class="form-group">
+                                    <label for="mkt-c2">Coef. Lineal (c2):</label>
+                                    <input type="number" id="mkt-c2" value="5.0" step="0.1">
+                                </div>
+                                <div class="form-group">
+                                    <label for="mkt-a2">Coef. Saturación (a2):</label>
+                                    <input type="number" id="mkt-a2" value="0.3" min="0.0" step="0.05">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn-primary w-full mt-20" id="btn-optimize-marketing">
+                            <i data-lucide="play"></i> Asignar Presupuesto
+                        </button>
+                    </div>
+
+                    <!-- Resultados -->
+                    <div class="results-card glass">
+                        <h2><i data-lucide="pie-chart"></i> Distribución de Recursos Óptima</h2>
+                        <div class="metrics-row">
+                            <div class="metric-pill">
+                                <span>Nuevos Usuarios Estimados</span>
+                                <strong id="mkt-max-acquisition">-</strong>
+                            </div>
+                            <div class="metric-pill">
+                                <span>Restricción Presupuestaria</span>
+                                <strong id="mkt-constraint-status">-</strong>
+                            </div>
+                        </div>
+
+                        <div class="chart-summary-container">
+                            <div class="mkt-output-bars">
+                                <div class="bar-item">
+                                    <div class="bar-labels">
+                                        <span>Campañas Creadores ($x_1$)</span>
+                                        <strong id="mkt-x1-val">-</strong>
+                                    </div>
+                                    <div class="bar-track">
+                                        <div class="bar-fill blue" id="mkt-x1-fill" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="bar-item mt-15">
+                                    <div class="bar-labels">
+                                        <span>Anuncios Programáticos ($x_2$)</span>
+                                        <strong id="mkt-x2-val">-</strong>
+                                    </div>
+                                    <div class="bar-track">
+                                        <div class="bar-fill purple" id="mkt-x2-fill" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="unconstrained-box" id="mkt-unconstrained-box">
+                                <h4>Máximo Teórico Irrestricto</h4>
+                                <p id="mkt-unconstrained-desc">Calculando...</p>
+                            </div>
+                        </div>
+
+                        <h3>Visualización de Rendimientos Marginales</h3>
+                        <div class="canvas-container">
+                            <canvas id="marketing-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. REPORT SECTION -->
+            <section id="report-section" class="content-section">
+                <div class="report-container glass">
+                    <div class="report-header">
+                        <h2><i data-lucide="terminal"></i> Informe de Toma de Decisiones y Análisis CTO</h2>
+                        <p class="desc-text">Este módulo consolida los resultados cuantitativos y los envía de forma asíncrona a la API de Groq para recibir el diagnóstico experto de viabilidad de negocios. Posteriormente, permite generar y exportar el informe nativo consolidado.</p>
+                    </div>
+                    
+                    <div class="report-controls">
+                        <button class="btn-secondary" id="btn-request-ai">
+                            <i data-lucide="brain"></i> Generar Análisis Estratégico (Groq)
+                        </button>
+                        <button class="btn-primary" id="btn-download-pdf" disabled>
+                            <i data-lucide="download"></i> Descargar Reporte Completo (PDF)
+                        </button>
+                    </div>
+
+                    <div class="ai-box">
+                        <div class="ai-box-title">
+                            <i data-lucide="cpu"></i> Conclusiones Estratégicas del Asistente de IA
+                        </div>
+                        <div class="ai-content-body" id="ai-content-body">
+                            <div class="empty-ai-message">
+                                <i data-lucide="message-square-dashed"></i>
+                                <p>Presione el botón "Generar Análisis Estratégico (Groq)" para enviar los datos numéricos y solicitar el dictamen formal del CTO.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
