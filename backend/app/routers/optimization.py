@@ -5,7 +5,7 @@ from typing import List, Dict, Any
 # Importar los optimizadores desde el paquete de algoritmos
 from ..algorithms.knapsack    import OptimizadorMochila
 from ..algorithms.stage_coach import OptimizadorRutaPorEtapas
-from ..algorithms.non_linear  import OptimizadorNoLineal
+from ..algorithms.optimizador_no_lineal  import OptimizadorNoLineal
 
 # Router con prefijo "/optimizar" y etiqueta visible en la documentación de la API
 enrutador = APIRouter(

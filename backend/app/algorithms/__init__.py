@@ -1,8 +1,8 @@
 # Exportaciones públicas del paquete de algoritmos de optimización
-from .base       import OptimizadorBase
-from .knapsack   import OptimizadorMochila, Microservicio
+from .base import OptimizadorBase
+from .knapsack import OptimizadorMochila, Microservicio
 from .stage_coach import OptimizadorRutaPorEtapas
-from .non_linear import OptimizadorNoLineal
+from .optimizador_no_lineal import OptimizadorNoLineal
 
 __all__ = [
     "OptimizadorBase",

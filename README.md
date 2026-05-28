@@ -24,7 +24,7 @@ NEXUSCORE SYSTEMS/
 │   │   │   ├── base.py              # Clase base abstracta de optimización (BaseOptimizer)
 │   │   │   ├── knapsack.py          # Sub-problema A: Mochila (Carga de Servidores)
 │   │   │   ├── stage_coach.py       # Sub-problema B: Grafo por Etapas (Ruta Crítica)
-│   │   │   └── non_linear.py        # Parte II: Optimización No Lineal (Marketing)
+│   │   │   └── optimizador_no_lineal.py # Parte II: Optimización No Lineal (Marketing)
 │   │   │
 │   │   ├── services/                # Servicios de integración externa
 │   │   │   ├── __init__.py
@@ -59,7 +59,7 @@ NEXUSCORE SYSTEMS/
 Cada algoritmo de resolución está encapsulado en una clase orientada a objetos que hereda de una clase abstracta común `BaseOptimizer` en `base.py`.
 - **Carga de Servidores (`knapsack.py`)**: Utiliza programación dinámica unidimensional/bidimensional para resolver el problema de la mochila 0/1. Su fin es maximizar el valor de estabilidad acumulado desplegando un conjunto de microservicios críticos en un servidor maestro con capacidad de RAM limitada (por defecto 16 GB). Genera la matriz paso a paso completa.
 - **Distribución de Datos (`stage_coach.py`)**: Resuelve el problema de la ruta crítica de menor latencia (en milisegundos) desde un servidor principal (Nodo A) hasta los servidores de respaldo regionales (Nodo J). Aplica programación dinámica hacia atrás (Backward) estructurada por etapas, devolviendo las tablas de decisión $f_n(s)$ y decisiones óptimas de cada paso.
-- **Optimización de Marketing No Lineal (`non_linear.py`)**: Resuelve la asignación del presupuesto mensual de marketing ($B$, máximo $10,000) distribuido entre Campañas de Creadores de Contenido ($x_1$) y Anuncios Programáticos ($x_2$). La función no lineal es:
+- **Optimización de Marketing No Lineal (`optimizador_no_lineal.py`)**: Resuelve la asignación del presupuesto mensual de marketing ($B$, máximo $10,000) distribuido entre Campañas de Creadores de Contenido ($x_1$) y Anuncios Programáticos ($x_2$). La función no lineal es:
   $$\text{Maximizar } f(x_1, x_2) = c_1 x_1 + c_2 x_2 - a_1 x_1^2 - a_2 x_2^2$$
   Sujeto a:
   $$x_1 + x_2 \le B, \quad x_1, x_2 \ge 0$$

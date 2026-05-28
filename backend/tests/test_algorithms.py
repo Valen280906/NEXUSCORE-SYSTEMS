@@ -1,7 +1,7 @@
 import pytest
 from app.algorithms.knapsack    import OptimizadorMochila
 from app.algorithms.stage_coach import OptimizadorRutaPorEtapas
-from app.algorithms.non_linear  import OptimizadorNoLineal
+from app.algorithms.optimizador_no_lineal  import OptimizadorNoLineal
 
 def test_optimizador_mochila():
     """
