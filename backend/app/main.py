@@ -1,10 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .config import settings
-from .routers import optimization_router, ai_router
 
+# Importar configuración global
+from .config import configuracion
+
+# Importar los enrutadores (routers) ya renombrados a español
+from .routers import enrutador_optimizacion, enrutador_ia
+
+# Inicializar la aplicación FastAPI
 app = FastAPI(
-    title=settings.PROJECT_NAME,
+    title=configuracion.NOMBRE_PROYECTO,
     description="Motor de Optimización Cuantitativa y Análisis CTO con IA para NexusCore Systems",
     version="1.0.0"
 )
@@ -20,14 +25,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Registrar enrutadores de la API con su prefijo
-app.include_router(optimization_router, prefix=settings.API_V1_STR)
-app.include_router(ai_router, prefix=settings.API_V1_STR)
+# Registrar los enrutadores de la API con el prefijo global definido en la configuración
+app.include_router(enrutador_optimizacion, prefix=configuracion.PREFIJO_API_V1)
+app.include_router(enrutador_ia,           prefix=configuracion.PREFIJO_API_V1)
 
 @app.get("/")
-def read_root():
+def raiz_api():
+    """Endpoint raíz para comprobar el estado de la API."""
     return {
-        "status": "online",
-        "message": f"Bienvenido a la API del {settings.PROJECT_NAME}",
-        "documentation": "/docs"
+        "estado": "en_linea",
+        "mensaje": f"Bienvenido a la API del {configuracion.NOMBRE_PROYECTO}",
+        "documentacion": "/docs"
     }

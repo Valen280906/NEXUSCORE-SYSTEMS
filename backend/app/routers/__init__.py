@@ -1,7 +1,9 @@
-from .optimization import router as optimization_router
-from .ai import router as ai_router
+# Exportaciones públicas del paquete de routers
+# Se importa la variable 'enrutador' de cada módulo para registrarla en main.py
+from .optimization import enrutador as enrutador_optimizacion
+from .ai           import enrutador as enrutador_ia
 
 __all__ = [
-    "optimization_router",
-    "ai_router"
+    "enrutador_optimizacion",
+    "enrutador_ia"
 ]

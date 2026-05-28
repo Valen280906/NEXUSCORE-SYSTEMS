@@ -3,30 +3,38 @@ from typing import Dict, Any
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, KeepTogether
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer,
+    Table, TableStyle, PageBreak, KeepTogether
+)
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
 
-class PdfService:
+
+class ServicioPdf:
     """
     Servicio de generación de reportes PDF formales utilizando ReportLab.
-    Genera un informe técnico corporativo completo con tablas y análisis de negocio.
+    Construye el documento en memoria y lo retorna como bytes descargables.
+    El reporte incluye: portada, tablas DP, resultados de marketing (con Lagrange),
+    y el análisis cualitativo generado por la IA.
     """
-    
+
     @staticmethod
-    def generate_report(
-        knapsack_res: Dict[str, Any],
-        routing_res: Dict[str, Any],
-        marketing_res: Dict[str, Any],
-        ai_conclusions: str
+    def generar_reporte(
+        resultado_mochila:      Dict[str, Any],
+        resultado_enrutamiento:  Dict[str, Any],
+        resultado_marketing:    Dict[str, Any],
+        conclusiones_ia:        str
     ) -> bytes:
         """
-        Crea un PDF en memoria y devuelve los bytes del archivo generado.
+        Construye el PDF completo en memoria y retorna el contenido como bytes.
+        Incluye todas las secciones del proyecto: DP, No Lineal, Lagrange, IA.
         """
+        # Buffer en memoria donde se escribirá el PDF
         buffer = io.BytesIO()
-        
-        # Configurar el documento
-        doc = SimpleDocTemplate(
+
+        # Configurar el documento (tamaño carta, márgenes estándar)
+        documento = SimpleDocTemplate(
             buffer,
             pagesize=letter,
             rightMargin=54,
@@ -34,368 +42,388 @@ class PdfService:
             topMargin=54,
             bottomMargin=54
         )
-        
-        story = []
-        
-        # Paleta de colores institucionales
-        PRIMARY_COLOR = colors.HexColor("#0f172a")    # Azul Oscuro (Deep slate)
-        SECONDARY_COLOR = colors.HexColor("#0284c7")  # Azul Claro (Sky blue)
-        ACCENT_COLOR = colors.HexColor("#0f766e")     # Verde Teal
-        TEXT_COLOR = colors.HexColor("#334155")       # Gris de Texto
-        LIGHT_BG = colors.HexColor("#f8fafc")         # Fondo gris claro para tablas
-        
-        # Hojas de estilo
-        styles = getSampleStyleSheet()
-        
-        # Modificar y agregar estilos personalizados
-        title_style = ParagraphStyle(
-            'DocTitle',
-            parent=styles['Normal'],
-            fontName='Helvetica-Bold',
-            fontSize=22,
-            leading=26,
-            textColor=PRIMARY_COLOR,
-            alignment=TA_CENTER
+
+        # ----------------------------------------------------------------
+        # PALETA DE COLORES INSTITUCIONALES
+        # ----------------------------------------------------------------
+        COLOR_PRIMARIO   = colors.HexColor("#0f172a")   # Azul oscuro corporativo
+        COLOR_SECUNDARIO = colors.HexColor("#0284c7")   # Azul cielo para encabezados
+        COLOR_ACENTO     = colors.HexColor("#0f766e")   # Verde teal para IA
+        COLOR_TEXTO      = colors.HexColor("#334155")   # Gris de texto principal
+        COLOR_FONDO_CLARO = colors.HexColor("#f8fafc")  # Fondo gris claro para tablas
+
+        # ----------------------------------------------------------------
+        # ESTILOS TIPOGRÁFICOS DEL DOCUMENTO
+        # ----------------------------------------------------------------
+        estilos_base = getSampleStyleSheet()
+
+        estilo_titulo = ParagraphStyle(
+            'TituloDocumento',
+            parent=estilos_base['Normal'],
+            fontName='Helvetica-Bold', fontSize=22, leading=26,
+            textColor=COLOR_PRIMARIO, alignment=TA_CENTER
         )
-        
-        subtitle_style = ParagraphStyle(
-            'DocSubtitle',
-            parent=styles['Normal'],
-            fontName='Helvetica',
-            fontSize=12,
-            leading=16,
-            textColor=SECONDARY_COLOR,
-            alignment=TA_CENTER
+        estilo_subtitulo = ParagraphStyle(
+            'SubtituloDocumento',
+            parent=estilos_base['Normal'],
+            fontName='Helvetica', fontSize=12, leading=16,
+            textColor=COLOR_SECUNDARIO, alignment=TA_CENTER
         )
-        
-        h1_style = ParagraphStyle(
-            'SectionH1',
-            parent=styles['Heading1'],
-            fontName='Helvetica-Bold',
-            fontSize=16,
-            leading=20,
-            textColor=PRIMARY_COLOR,
-            spaceBefore=15,
-            spaceAfter=8,
-            keepWithNext=True
+        estilo_h1 = ParagraphStyle(
+            'SeccionH1',
+            parent=estilos_base['Heading1'],
+            fontName='Helvetica-Bold', fontSize=16, leading=20,
+            textColor=COLOR_PRIMARIO, spaceBefore=15, spaceAfter=8, keepWithNext=True
+        )
+        estilo_h2 = ParagraphStyle(
+            'SeccionH2',
+            parent=estilos_base['Heading2'],
+            fontName='Helvetica-Bold', fontSize=12, leading=16,
+            textColor=COLOR_SECUNDARIO, spaceBefore=10, spaceAfter=6, keepWithNext=True
+        )
+        estilo_cuerpo = ParagraphStyle(
+            'CuerpoTexto',
+            parent=estilos_base['BodyText'],
+            fontName='Helvetica', fontSize=10, leading=14,
+            textColor=COLOR_TEXTO, alignment=TA_JUSTIFY, spaceAfter=10
+        )
+        estilo_cuerpo_negrita = ParagraphStyle(
+            'CuerpoNegrita', parent=estilo_cuerpo, fontName='Helvetica-Bold'
+        )
+        estilo_enc_tabla = ParagraphStyle(
+            'EncabezadoTabla',
+            parent=estilos_base['Normal'],
+            fontName='Helvetica-Bold', fontSize=8, leading=10,
+            textColor=colors.white, alignment=TA_CENTER
+        )
+        estilo_celda = ParagraphStyle(
+            'CeldaTabla',
+            parent=estilos_base['Normal'],
+            fontName='Helvetica', fontSize=8, leading=10,
+            textColor=COLOR_TEXTO, alignment=TA_CENTER
+        )
+        estilo_celda_izq = ParagraphStyle(
+            'CeldaTablaIzquierda',
+            parent=estilos_base['Normal'],
+            fontName='Helvetica', fontSize=8, leading=10,
+            textColor=COLOR_TEXTO, alignment=TA_LEFT
+        )
+        estilo_ia = ParagraphStyle(
+            'EncabezadoIA',
+            parent=estilos_base['Heading2'],
+            fontName='Helvetica-Bold', fontSize=12, leading=16,
+            textColor=COLOR_ACENTO, spaceBefore=12, spaceAfter=6, keepWithNext=True
         )
 
-        h2_style = ParagraphStyle(
-            'SectionH2',
-            parent=styles['Heading2'],
-            fontName='Helvetica-Bold',
-            fontSize=12,
-            leading=16,
-            textColor=SECONDARY_COLOR,
-            spaceBefore=10,
-            spaceAfter=6,
-            keepWithNext=True
-        )
+        # Lista de elementos del documento (contenido ordenado)
+        contenido = []
 
-        body_style = ParagraphStyle(
-            'DocBody',
-            parent=styles['BodyText'],
-            fontName='Helvetica',
-            fontSize=10,
-            leading=14,
-            textColor=TEXT_COLOR,
-            alignment=TA_JUSTIFY,
-            spaceAfter=10
-        )
-        
-        bold_body_style = ParagraphStyle(
-            'DocBodyBold',
-            parent=body_style,
-            fontName='Helvetica-Bold'
-        )
+        # ================================================================
+        # SECCIÓN 0: PORTADA / ENCABEZADO
+        # ================================================================
+        contenido.append(Paragraph("NEXUSCORE SYSTEMS", estilo_subtitulo))
+        contenido.append(Spacer(1, 10))
+        contenido.append(Paragraph("INFORME TÉCNICO DE OPTIMIZACIÓN OPERACIONAL", estilo_titulo))
+        contenido.append(Spacer(1, 5))
+        contenido.append(Paragraph(
+            "Plataforma Inteligente de Soporte a Decisiones en Infraestructura y Marketing",
+            estilo_subtitulo
+        ))
+        contenido.append(Spacer(1, 20))
 
-        table_header_style = ParagraphStyle(
-            'TableHeader',
-            parent=styles['Normal'],
-            fontName='Helvetica-Bold',
-            fontSize=8,
-            leading=10,
-            textColor=colors.white,
-            alignment=TA_CENTER
-        )
-
-        table_cell_style = ParagraphStyle(
-            'TableCell',
-            parent=styles['Normal'],
-            fontName='Helvetica',
-            fontSize=8,
-            leading=10,
-            textColor=TEXT_COLOR,
-            alignment=TA_CENTER
-        )
-
-        table_cell_left_style = ParagraphStyle(
-            'TableCellLeft',
-            parent=styles['Normal'],
-            fontName='Helvetica',
-            fontSize=8,
-            leading=10,
-            textColor=TEXT_COLOR,
-            alignment=TA_LEFT
-        )
-
-        ai_header_style = ParagraphStyle(
-            'AiHeader',
-            parent=styles['Heading2'],
-            fontName='Helvetica-Bold',
-            fontSize=12,
-            leading=16,
-            textColor=ACCENT_COLOR,
-            spaceBefore=12,
-            spaceAfter=6,
-            keepWithNext=True
-        )
-
-        # ----------------------------------------------------
-        # 1. ENCABEZADO / TÍTULO DE PORTADA
-        # ----------------------------------------------------
-        story.append(Paragraph("NEXUSCORE SYSTEMS", subtitle_style))
-        story.append(Spacer(1, 10))
-        story.append(Paragraph("INFORME TÉCNICO DE OPTIMIZACIÓN OPERACIONAL", title_style))
-        story.append(Spacer(1, 5))
-        story.append(Paragraph("Plataforma Inteligente de Soporte a Decisiones en Infraestructura y Marketing", subtitle_style))
-        story.append(Spacer(1, 20))
-        
-        # Línea divisoria decorativa
-        line_table = Table([[""]], colWidths=[504], rowHeights=[3])
-        line_table.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,-1), SECONDARY_COLOR),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 0),
-            ('TOPPADDING', (0,0), (-1,-1), 0),
+        # Línea decorativa
+        linea_separadora = Table([[""]], colWidths=[504], rowHeights=[3])
+        linea_separadora.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), COLOR_SECUNDARIO),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+            ('TOPPADDING', (0, 0), (-1, -1), 0),
         ]))
-        story.append(line_table)
-        story.append(Spacer(1, 15))
-        
+        contenido.append(linea_separadora)
+        contenido.append(Spacer(1, 15))
+
         # Resumen ejecutivo
-        story.append(Paragraph(
+        contenido.append(Paragraph(
             "<b>Resumen Ejecutivo:</b> Este informe consolida los resultados cuantitativos y cualitativos "
-            "obtenidos para la toma de decisiones estratégicas. En las secciones siguientes, se detallan las "
-            "soluciones óptimas a los problemas de carga de servidores (mediante Programación Dinámica), "
-            "enrutamiento en red de baja latencia (Programación Dinámica Backward), asignación de presupuesto "
-            "publicitario no lineal y, finalmente, un dictamen experto emitido por nuestro asistente de IA (CTO).",
-            body_style
+            "de la plataforma de optimización de NexusCore Systems. Las secciones siguientes detallan: "
+            "la asignación óptima de microservicios al servidor maestro (Programación Dinámica), "
+            "la ruta de menor latencia en la red de distribución (DP Backward), "
+            "la distribución óptima del presupuesto de marketing (Lagrange + Gradiente), "
+            "y el análisis estratégico emitido por el asistente de IA en rol de CTO.",
+            estilo_cuerpo
         ))
-        
-        # ----------------------------------------------------
-        # 2. PARTE I: PROGRAMACIÓN DINÁMICA
-        # ----------------------------------------------------
-        story.append(Paragraph("Parte I: Programación Dinámica y Enrutamiento Eficiente", h1_style))
-        
-        # SUB-PROBLEMA A: Mochila (Carga de Servidores)
-        story.append(Paragraph("Sub-problema A: El Problema de la Carga de Servidores (Volumen de Carga)", h2_style))
-        story.append(Paragraph(
-            f"El objetivo es maximizar la estabilidad total del sistema desplegando microservicios críticos en un "
-            f"servidor maestro con capacidad de <b>{knapsack_res.get('capacity', 0)} GB</b>. "
-            f"La optimización matemática dio como resultado un valor de estabilidad máximo de <b>{knapsack_res.get('max_value', 0)}</b> "
-            f"utilizando un total de <b>{knapsack_res.get('used_weight', 0)} GB</b> de memoria RAM.",
-            body_style
-        ))
-        
-        # Lista de Microservicios Seleccionados
-        story.append(Paragraph("<b>Microservicios Seleccionados para el Despliegue:</b>", body_style))
-        selected_text = ""
-        for item in knapsack_res.get('selected_items', []):
-            selected_text += f"• <b>{item['name']}</b> (RAM: {item['weight']} GB | Prioridad: {item['value']})<br/>"
-        story.append(Paragraph(selected_text if selected_text else "Ninguno.", body_style))
-        story.append(Spacer(1, 10))
 
-        # Tabla paso a paso de Mochila
-        story.append(Paragraph("<b>Matriz de Decisiones Paso a Paso (Programación Dinámica):</b>", body_style))
-        
-        dp_table_data = knapsack_res.get('step_by_step_table', {})
-        raw_headers = dp_table_data.get('headers', [])
-        raw_rows = dp_table_data.get('rows', [])
-        
-        # Filtrar o adaptar las columnas si son demasiadas para que no se desborden de la página
-        # La página de ancho utilizable tiene 504 ptos.
-        max_cols_to_show = 11  # Mostrar capacidades hasta 10GB en PDF para legibilidad física
-        cols_limit = min(len(raw_headers), max_cols_to_show)
-        
-        headers_pdf = [Paragraph("Microservicio / RAM", table_header_style)] + [Paragraph(raw_headers[c], table_header_style) for c in range(cols_limit)]
-        if len(raw_headers) > max_cols_to_show:
-            headers_pdf.append(Paragraph("...", table_header_style))
-            headers_pdf.append(Paragraph(raw_headers[-1], table_header_style))
-            
-        rows_pdf = []
-        for row in raw_rows:
-            label = row["row_label"]
-            vals = row["values"]
-            pdf_row = [Paragraph(label, table_cell_left_style)]
-            
-            for c in range(cols_limit):
-                pdf_row.append(Paragraph(str(vals[c]), table_cell_style))
-                
-            if len(raw_headers) > max_cols_to_show:
-                pdf_row.append(Paragraph("...", table_cell_style))
-                pdf_row.append(Paragraph(str(vals[-1]), table_cell_style))
-                
-            rows_pdf.append(pdf_row)
-            
-        knap_table = Table([headers_pdf] + rows_pdf)
-        knap_table.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,0), PRIMARY_COLOR),
-            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, LIGHT_BG]),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 4),
-            ('TOPPADDING', (0,0), (-1,-1), 4),
-        ]))
-        
-        story.append(knap_table)
-        story.append(Spacer(1, 15))
-        
-        # SUB-PROBLEMA B: Grafo por Etapas
-        story.append(Paragraph("Sub-problema B: Red de Distribución de Datos (Grafos por Etapas)", h2_style))
-        story.append(Paragraph(
-            f"Se ha calculado la ruta crítica de menor latencia acumulada desde el servidor de origen (Nodo "
-            f"<b>{routing_res.get('start_node', 'A')}</b>) hasta los servidores de respaldo regionales (Nodo "
-            f"<b>{routing_res.get('end_node', 'J')}</b>) mediante programación dinámica Backward. "
-            f"La latencia crítica mínima obtenida es de <b>{routing_res.get('min_cost', 0.0)} ms</b>, "
-            f"siguiendo la ruta: <b>{' → '.join(routing_res.get('optimal_path', []))}</b>.",
-            body_style
+        # ================================================================
+        # SECCIÓN I: PROGRAMACIÓN DINÁMICA
+        # ================================================================
+        contenido.append(Paragraph(
+            "Parte I: Programación Dinámica y Enrutamiento Eficiente",
+            estilo_h1
         ))
-        
-        # Tablas de decisión de cada etapa
-        story.append(Paragraph("<b>Tablas de Decisión de Programación Dinámica Backward:</b>", body_style))
-        for table in routing_res.get('step_by_step_tables', []):
-            headers = [Paragraph(h, table_header_style) for h in table["headers"]]
-            rows = []
-            for row in table["rows"]:
-                rows.append([Paragraph(str(cell), table_cell_style) for cell in row])
-                
-            etapa_table = Table([headers] + rows)
-            etapa_table.setStyle(TableStyle([
-                ('BACKGROUND', (0,0), (-1,0), SECONDARY_COLOR),
-                ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-                ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-                ('BOTTOMPADDING', (0,0), (-1,-1), 4),
-                ('TOPPADDING', (0,0), (-1,-1), 4),
-                ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, LIGHT_BG]),
+
+        # ---- Sub-problema A: Mochila ----
+        contenido.append(Paragraph(
+            "Sub-problema A: Carga de Servidores (Mochila 0/1)",
+            estilo_h2
+        ))
+        capacidad_srv = resultado_mochila.get('capacidad', 0)
+        val_maximo    = resultado_mochila.get('valor_maximo', 0)
+        peso_usado    = resultado_mochila.get('peso_utilizado', 0)
+
+        contenido.append(Paragraph(
+            f"El algoritmo maximizó el Índice de Estabilidad del sistema desplegando microservicios "
+            f"en un servidor con capacidad de <b>{capacidad_srv} GB</b>. "
+            f"El valor de estabilidad máximo alcanzado es <b>{val_maximo}</b>, "
+            f"consumiendo <b>{peso_usado} GB</b> de RAM.",
+            estilo_cuerpo
+        ))
+
+        # Lista de microservicios seleccionados
+        contenido.append(Paragraph("<b>Microservicios Seleccionados para el Despliegue:</b>", estilo_cuerpo))
+        texto_servicios = ""
+        for item in resultado_mochila.get('elementos_elegidos', []):
+            texto_servicios += f"• <b>{item['nombre']}</b> (RAM: {item['peso']} GB | Prioridad: {item['valor']})<br/>"
+        contenido.append(Paragraph(texto_servicios or "Ninguno.", estilo_cuerpo))
+        contenido.append(Spacer(1, 10))
+
+        # Tabla DP paso a paso
+        contenido.append(Paragraph("<b>Matriz de Decisiones DP (Paso a Paso):</b>", estilo_cuerpo))
+
+        tabla_dp_datos = resultado_mochila.get('tabla_paso_a_paso', {})
+        encabezados_dp = tabla_dp_datos.get('encabezados', [])
+        filas_dp       = tabla_dp_datos.get('filas', [])
+
+        # Limitar columnas para evitar desbordamiento en el PDF
+        max_cols = 11
+        limite_cols = min(len(encabezados_dp), max_cols)
+
+        enc_pdf = ([Paragraph("Microservicio / RAM", estilo_enc_tabla)]
+                   + [Paragraph(encabezados_dp[c], estilo_enc_tabla) for c in range(limite_cols)])
+        if len(encabezados_dp) > max_cols:
+            enc_pdf += [Paragraph("...", estilo_enc_tabla), Paragraph(encabezados_dp[-1], estilo_enc_tabla)]
+
+        filas_pdf = []
+        for fila in filas_dp:
+            etiqueta = fila["etiqueta_fila"]
+            valores  = fila["valores"]
+            fila_pdf = [Paragraph(etiqueta, estilo_celda_izq)]
+            for c in range(limite_cols):
+                fila_pdf.append(Paragraph(str(valores[c]), estilo_celda))
+            if len(encabezados_dp) > max_cols:
+                fila_pdf += [Paragraph("...", estilo_celda), Paragraph(str(valores[-1]), estilo_celda)]
+            filas_pdf.append(fila_pdf)
+
+        tabla_dp = Table([enc_pdf] + filas_pdf)
+        tabla_dp.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), COLOR_PRIMARIO),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, COLOR_FONDO_CLARO]),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ]))
+        contenido.append(tabla_dp)
+        contenido.append(Spacer(1, 15))
+
+        # ---- Sub-problema B: Grafo por Etapas ----
+        contenido.append(Paragraph(
+            "Sub-problema B: Red de Distribución de Datos (Grafos por Etapas)",
+            estilo_h2
+        ))
+        nodo_ini     = resultado_enrutamiento.get('nodo_inicial', 'A')
+        nodo_dst     = resultado_enrutamiento.get('nodo_destino', 'J')
+        costo_min    = resultado_enrutamiento.get('costo_minimo', 0.0)
+        ruta_optima  = resultado_enrutamiento.get('ruta_optima', [])
+
+        contenido.append(Paragraph(
+            f"Mediante DP Backward se calculó la ruta crítica desde el nodo "
+            f"<b>{nodo_ini}</b> hasta el nodo <b>{nodo_dst}</b>. "
+            f"La latencia mínima acumulada es de <b>{costo_min} ms</b>, "
+            f"siguiendo la ruta: <b>{' → '.join(ruta_optima)}</b>.",
+            estilo_cuerpo
+        ))
+
+        # Tablas de decisión por etapa
+        contenido.append(Paragraph("<b>Tablas de Decisión DP Backward por Etapa:</b>", estilo_cuerpo))
+        for tabla_etapa in resultado_enrutamiento.get('tablas_paso_a_paso', []):
+            encabezados_et = [Paragraph(h, estilo_enc_tabla) for h in tabla_etapa["encabezados"]]
+            filas_et = [
+                [Paragraph(str(celda), estilo_celda) for celda in fila]
+                for fila in tabla_etapa["filas"]
+            ]
+            tabla_obj = Table([encabezados_et] + filas_et)
+            tabla_obj.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), COLOR_SECUNDARIO),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, COLOR_FONDO_CLARO]),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
             ]))
-            
-            # Encapsular cada etapa con su título
-            story.append(KeepTogether([
-                Paragraph(f"<b>{table['descripcion']}</b>", body_style),
-                etapa_table,
+            contenido.append(KeepTogether([
+                Paragraph(f"<b>{tabla_etapa['descripcion']}</b>", estilo_cuerpo),
+                tabla_obj,
                 Spacer(1, 8)
             ]))
-            
-        story.append(PageBreak())  # Salto de página para el análisis estratégico e IA
-        
-        # ----------------------------------------------------
-        # 3. PARTE II: OPTIMIZACIÓN NO LINEAL
-        # ----------------------------------------------------
-        story.append(Paragraph("Parte II: Optimización de Problemas No Lineales (Presupuesto de Marketing)", h1_style))
-        
-        marketing_opt = marketing_res.get('constrained_optimum', {})
-        story.append(Paragraph(
-            f"Para el lanzamiento estratégico, se distribuyó un presupuesto total de "
-            f"<b>${marketing_res.get('budget', 0.0) * 1000:,.2f}</b> para maximizar la adquisición mensual de usuarios. "
-            f"Utilizando bisección y refinamiento en malla fina sobre el modelo no lineal de rendimientos marginales, "
-            f"la asignación óptima de recursos calculada es:",
-            body_style
-        ))
-        
-        # Tabla resumen marketing
-        mkt_headers = [
-            Paragraph("Variable publicitaria", table_header_style),
-            Paragraph("Porcentaje de inversión", table_header_style),
-            Paragraph("Monto asignado", table_header_style)
-        ]
-        
-        x1_val = marketing_opt.get('x1', 0.0)
-        x2_val = marketing_opt.get('x2', 0.0)
-        budget_tot = marketing_res.get('budget', 1.0)
-        
-        x1_pct = (x1_val / budget_tot) * 100 if budget_tot > 0 else 0
-        x2_pct = (x2_val / budget_tot) * 100 if budget_tot > 0 else 0
-        
-        mkt_rows = [
-            [Paragraph("Campañas de Creadores de Contenido (x1)", table_cell_left_style), Paragraph(f"{x1_pct:.1f}%", table_cell_style), Paragraph(f"${x1_val * 1000:,.2f}", table_cell_style)],
-            [Paragraph("Anuncios Programáticos (x2)", table_cell_left_style), Paragraph(f"{x2_pct:.1f}%", table_cell_style), Paragraph(f"${x2_val * 1000:,.2f}", table_cell_style)],
-            [Paragraph("<b>Retorno Total Estimado</b>", table_cell_left_style), Paragraph("-", table_cell_style), Paragraph(f"<b>{marketing_opt.get('value', 0.0) * 1000:,.0f} usuarios/mes</b>", table_cell_style)]
-        ]
-        
-        mkt_table = Table([mkt_headers] + mkt_rows, colWidths=[250, 110, 144])
-        mkt_table.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,0), PRIMARY_COLOR),
-            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, LIGHT_BG]),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 6),
-            ('TOPPADDING', (0,0), (-1,-1), 6),
-        ]))
-        
-        story.append(mkt_table)
-        story.append(Spacer(1, 15))
 
-        # ----------------------------------------------------
-        # 4. PARTE III: CONCLUSIONES DE IA (CTO)
-        # ----------------------------------------------------
-        story.append(Paragraph("Parte III: Conclusiones Estratégicas del Asistente de IA (CTO)", h1_style))
-        story.append(Paragraph(
-            "La siguiente sección ha sido generada por el motor inteligente de Groq empleando modelos de "
-            "alto rendimiento, proporcionando un análisis de viabilidad cualitativo sobre los resultados:",
-            body_style
+        contenido.append(PageBreak())
+
+        # ================================================================
+        # SECCIÓN II: OPTIMIZACIÓN NO LINEAL
+        # ================================================================
+        contenido.append(Paragraph(
+            "Parte II: Optimización No Lineal (Presupuesto de Marketing)",
+            estilo_h1
         ))
-        
-        # Procesar las conclusiones de IA de Markdown a párrafos de ReportLab
-        # Haremos una traducción básica de Markdown a párrafos estilizados.
-        lines = ai_conclusions.split('\n')
-        in_list = False
-        
-        for line in lines:
-            line_str = line.strip()
-            if not line_str:
+
+        opt_restringido = resultado_marketing.get('optimo_restringido', {})
+        presupuesto_mkt = resultado_marketing.get('presupuesto', 0.0)
+        x1_val  = opt_restringido.get('x1', 0.0)
+        x2_val  = opt_restringido.get('x2', 0.0)
+        val_mkt = opt_restringido.get('valor', 0.0)
+
+        # Calcular porcentajes de inversión
+        x1_pct = (x1_val / presupuesto_mkt * 100) if presupuesto_mkt > 0 else 0
+        x2_pct = (x2_val / presupuesto_mkt * 100) if presupuesto_mkt > 0 else 0
+
+        contenido.append(Paragraph(
+            f"Para el lanzamiento estratégico, se distribuyó un presupuesto de "
+            f"<b>${presupuesto_mkt * 1000:,.2f}</b> aplicando la función no lineal de "
+            f"adquisición de usuarios con rendimientos marginales decrecientes.",
+            estilo_cuerpo
+        ))
+
+        # Tabla resumen de la asignación óptima
+        enc_mkt = [
+            Paragraph("Variable publicitaria", estilo_enc_tabla),
+            Paragraph("% de inversión", estilo_enc_tabla),
+            Paragraph("Monto asignado", estilo_enc_tabla)
+        ]
+        filas_mkt = [
+            [Paragraph("Campañas de Creadores de Contenido (x₁)", estilo_celda_izq),
+             Paragraph(f"{x1_pct:.1f}%", estilo_celda),
+             Paragraph(f"${x1_val * 1000:,.2f}", estilo_celda)],
+            [Paragraph("Anuncios Programáticos (x₂)", estilo_celda_izq),
+             Paragraph(f"{x2_pct:.1f}%", estilo_celda),
+             Paragraph(f"${x2_val * 1000:,.2f}", estilo_celda)],
+            [Paragraph("<b>Retorno Total Estimado</b>", estilo_celda_izq),
+             Paragraph("-", estilo_celda),
+             Paragraph(f"<b>{val_mkt * 1000:,.0f} usuarios/mes</b>", estilo_celda)]
+        ]
+        tabla_mkt = Table([enc_mkt] + filas_mkt, colWidths=[250, 110, 144])
+        tabla_mkt.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), COLOR_PRIMARIO),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, COLOR_FONDO_CLARO]),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        contenido.append(tabla_mkt)
+        contenido.append(Spacer(1, 12))
+
+        # ---- Sub-sección: Método de Lagrange ----
+        contenido.append(Paragraph("Método de Multiplicadores de Lagrange", estilo_h2))
+        lagrange = resultado_marketing.get('metodo_lagrange', {})
+
+        if "multiplicador_lambda" in lagrange:
+            # Mostrar el planteamiento y resultado del método de Lagrange
+            pasos = lagrange.get('pasos_detalle', {})
+            contenido.append(Paragraph(
+                f"Con la restricción presupuestaria activa (x₁ + x₂ = {presupuesto_mkt}), "
+                f"se aplicó el Método de Lagrange obteniendo el multiplicador "
+                f"<b>λ = {lagrange.get('multiplicador_lambda', 'N/A')}</b>.",
+                estilo_cuerpo
+            ))
+            if pasos:
+                for clave, valor_paso in pasos.items():
+                    contenido.append(Paragraph(f"• {valor_paso}", estilo_cuerpo))
+            interpretacion = lagrange.get('interpretacion', '')
+            if interpretacion:
+                contenido.append(Paragraph(f"<b>Interpretación:</b> {interpretacion}", estilo_cuerpo))
+        elif "nota" in lagrange:
+            contenido.append(Paragraph(lagrange["nota"], estilo_cuerpo))
+
+        # ---- Sub-sección: Método de Gradiente ----
+        contenido.append(Paragraph("Método de Ascenso de Gradiente Proyectado", estilo_h2))
+        gradiente = resultado_marketing.get('metodo_gradiente', {})
+        if gradiente:
+            convergido    = gradiente.get('convergido', False)
+            num_iters     = gradiente.get('iteraciones_totales', 0)
+            x1_grad       = gradiente.get('x1_optimo', 0.0)
+            x2_grad       = gradiente.get('x2_optimo', 0.0)
+            valor_grad    = gradiente.get('valor_optimo', 0.0)
+            tasa_apr      = gradiente.get('tasa_aprendizaje', 0.01)
+            estado_conv   = "Sí (convergió)" if convergido else f"No (alcanzó el límite de {num_iters} iteraciones)"
+
+            contenido.append(Paragraph(
+                f"El algoritmo iterativo de Ascenso de Gradiente Proyectado ejecutó "
+                f"<b>{num_iters} iteraciones</b> con tasa de aprendizaje α = {tasa_apr}. "
+                f"Convergencia: <b>{estado_conv}</b>. "
+                f"Solución obtenida: x₁ = {x1_grad}, x₂ = {x2_grad}, "
+                f"f(x₁,x₂) = {valor_grad * 1000:.0f} usuarios.",
+                estilo_cuerpo
+            ))
+
+        contenido.append(Spacer(1, 15))
+
+        # ================================================================
+        # SECCIÓN III: CONCLUSIONES DE IA (CTO)
+        # ================================================================
+        contenido.append(Paragraph(
+            "Parte III: Conclusiones Estratégicas del Asistente de IA (CTO)",
+            estilo_h1
+        ))
+        contenido.append(Paragraph(
+            "La siguiente sección fue generada por el motor inteligente de Groq "
+            "(modelo llama3-8b-8192), analizando los resultados desde la perspectiva "
+            "de un Chief Technology Officer (CTO):",
+            estilo_cuerpo
+        ))
+
+        # Procesar el texto Markdown de la IA y convertirlo a párrafos de ReportLab
+        lineas = conclusiones_ia.split('\n')
+        for linea in lineas:
+            texto = linea.strip()
+            if not texto:
                 continue
-            
-            # Saltar notas informativas sobre la API Key si están presentes en la simulación
-            if "⚠️ Nota del Sistema" in line_str or "*Esta es una conclusión" in line_str:
+
+            # Filtrar notas del sistema (avisos internos)
+            if "⚠️ Nota del Sistema" in texto or "*Esta es una conclusión" in texto:
                 continue
-            
-            # Título 1 (#)
-            if line_str.startswith("# "):
-                title_text = line_str[2:]
-                story.append(Paragraph(title_text, ai_header_style))
-                story.append(Spacer(1, 4))
-            # Título 2 (##)
-            elif line_str.startswith("## "):
-                title_text = line_str[3:]
-                story.append(Paragraph(title_text, h2_style))
-                story.append(Spacer(1, 4))
-            # Título 3 (###)
-            elif line_str.startswith("### "):
-                title_text = line_str[4:]
-                story.append(Paragraph(f"<b>{title_text}</b>", bold_body_style))
-                story.append(Spacer(1, 4))
-            # Elementos de viñeta (lista)
-            elif line_str.startswith("* ") or line_str.startswith("- "):
-                list_text = line_str[2:]
-                # Convertir negrita Markdown (**) a HTML (<b>)
-                list_text = list_text.replace("**", "<b>", 1).replace("**", "</b>", 1)
-                story.append(Paragraph(f"• {list_text}", body_style))
-            # Elementos de lista numerada
-            elif line_str.split('.')[0].isdigit():
-                parts = line_str.split('.', 1)
-                num = parts[0]
-                text = parts[1].strip() if len(parts) > 1 else ""
-                text = text.replace("**", "<b>", 1).replace("**", "</b>", 1)
-                story.append(Paragraph(f"<b>{num}.</b> {text}", body_style))
-            # Párrafo estándar
+
+            # Título de nivel 1 (#)
+            if texto.startswith("# "):
+                contenido.append(Paragraph(texto[2:], estilo_ia))
+            # Título de nivel 2 (##)
+            elif texto.startswith("## "):
+                contenido.append(Paragraph(texto[3:], estilo_h2))
+            # Título de nivel 3 (###)
+            elif texto.startswith("### "):
+                contenido.append(Paragraph(f"<b>{texto[4:]}</b>", estilo_cuerpo_negrita))
+            # Elemento de lista (viñeta * o -)
+            elif texto.startswith("* ") or texto.startswith("- "):
+                texto_item = texto[2:].replace("**", "<b>", 1).replace("**", "</b>", 1)
+                contenido.append(Paragraph(f"• {texto_item}", estilo_cuerpo))
+            # Lista numerada (1. , 2. , etc.)
+            elif texto.split('.')[0].isdigit():
+                partes = texto.split('.', 1)
+                num    = partes[0]
+                item   = partes[1].strip() if len(partes) > 1 else ""
+                item   = item.replace("**", "<b>", 1).replace("**", "</b>", 1)
+                contenido.append(Paragraph(f"<b>{num}.</b> {item}", estilo_cuerpo))
+            # Párrafo normal
             else:
-                text = line_str.replace("**", "<b>", 1).replace("**", "</b>", 1)
-                story.append(Paragraph(text, body_style))
-                
-        # Construir el PDF
-        doc.build(story)
-        
-        pdf_bytes = buffer.getvalue()
+                texto = texto.replace("**", "<b>", 1).replace("**", "</b>", 1)
+                contenido.append(Paragraph(texto, estilo_cuerpo))
+
+        # ----------------------------------------------------------------
+        # Construir el PDF con todo el contenido acumulado
+        # ----------------------------------------------------------------
+        documento.build(contenido)
+
+        # Extraer los bytes del buffer y retornarlos
+        bytes_pdf = buffer.getvalue()
         buffer.close()
-        return pdf_bytes
+        return bytes_pdf

@@ -1,93 +1,148 @@
 from typing import List, Dict, Any
-from .base import BaseOptimizer
+from .base import OptimizadorBase
 
-class Microservice:
-    """
-    Clase que representa un microservicio crítico a desplegar.
-    """
-    def __init__(self, id: int, name: str, weight: int, value: int):
-        self.id = id
-        self.name = name
-        self.weight = weight  # Requisito de RAM (wi)
-        self.value = value    # Valor de Prioridad de Estabilidad (vi)
 
-    def to_dict(self) -> Dict[str, Any]:
+class Microservicio:
+    """
+    Clase que modela un microservicio crítico candidato a desplegarse en el servidor maestro.
+    Cada instancia representa un elemento del problema de la Mochila 0/1:
+      - peso  → Requisito de RAM en GB (wi)
+      - valor → Valor de Prioridad de Estabilidad del sistema (vi)
+    """
+
+    def __init__(self, id: int, nombre: str, peso: int, valor: int):
+        # Identificador único del microservicio
+        self.id     = id
+        # Nombre descriptivo del servicio
+        self.nombre = nombre
+        # Requisito de RAM que consume (en GB)
+        self.peso   = peso
+        # Valor de estabilidad que aporta al sistema
+        self.valor  = valor
+
+    def a_diccionario(self) -> Dict[str, Any]:
+        """Serializa el microservicio a un diccionario JSON-compatible para el reporte."""
         return {
-            "id": self.id,
-            "name": self.name,
-            "weight": self.weight,
-            "value": self.value
+            "id":     self.id,
+            "nombre": self.nombre,
+            "peso":   self.peso,
+            "valor":  self.valor
         }
 
-class KnapsackOptimizer(BaseOptimizer):
+
+class OptimizadorMochila(OptimizadorBase):
     """
-    Resolvedor de Programación Dinámica para el Problema de la Carga de Servidores.
-    Maximiza el valor de estabilidad sujeto a un límite de capacidad de RAM (Mochila 0/1).
+    Resuelve el Sub-problema A (Carga de Servidores) mediante Programación Dinámica.
+    Algoritmo de la Mochila 0/1: decide qué microservicios incluir para maximizar
+    el valor total de estabilidad sin exceder la capacidad de RAM del servidor maestro.
+
+    Hereda de OptimizadorBase e implementa el método resolver().
     """
-    def __init__(self, capacity: int, items_data: List[Dict[str, Any]]):
-        super().__init__("Knapsack Server Loading Optimizer")
-        self.capacity = max(0, capacity)
-        self.items = [
-            Microservice(
-                id=item.get("id", idx + 1),
-                name=item.get("name", f"Microservicio {idx + 1}"),
-                weight=max(1, int(item.get("weight", 1))),
-                value=max(0, int(item.get("value", 0)))
+
+    def __init__(self, capacidad: int, datos_elementos: List[Dict[str, Any]]):
+        super().__init__("Optimizador de Carga de Servidores - Mochila 0/1")
+        # Capacidad máxima de RAM del servidor en GB (mínimo 0 para evitar negativos)
+        self.capacidad = max(0, capacidad)
+
+        # Construir la lista de objetos Microservicio validando y normalizando los datos de entrada
+        # Se aceptan tanto claves en español (nombre/peso/valor) como en inglés (name/weight/value)
+        # para mantener compatibilidad durante la transición
+        self.elementos: List[Microservicio] = [
+            Microservicio(
+                id     = elem.get("id",     idx + 1),
+                nombre = elem.get("nombre", elem.get("name", f"Microservicio {idx + 1}")),
+                peso   = max(1, int(elem.get("peso",  elem.get("weight", 1)))),
+                valor  = max(0, int(elem.get("valor", elem.get("value",  0))))
             )
-            for idx, item in enumerate(items_data)
+            for idx, elem in enumerate(datos_elementos)
         ]
 
-    def solve(self) -> Dict[str, Any]:
-        n = len(self.items)
-        # Inicializar tabla de DP de dimensiones (n + 1) x (capacity + 1)
-        # dp[i][w] guardará el valor óptimo usando los primeros i elementos con capacidad w
-        dp = [[0 for _ in range(self.capacity + 1)] for _ in range(n + 1)]
+    def resolver(self) -> Dict[str, Any]:
+        """
+        Ejecuta el algoritmo de Programación Dinámica (Mochila 0/1).
 
-        # Llenar la matriz de DP
-        for i in range(1, n + 1):
-            item = self.items[i - 1]
-            for w in range(self.capacity + 1):
-                if item.weight <= w:
-                    dp[i][w] = max(
-                        dp[i - 1][w],
-                        dp[i - 1][w - item.weight] + item.value
+        Recurrencia de Bellman:
+            Si peso_i <= w:
+                tabla_dp[i][w] = max(tabla_dp[i-1][w],  tabla_dp[i-1][w-peso_i] + valor_i)
+            Si peso_i > w:
+                tabla_dp[i][w] = tabla_dp[i-1][w]
+
+        Al terminar, tabla_dp[n][capacidad] contiene el valor de estabilidad máximo alcanzable.
+        """
+        num_elementos = len(self.elementos)
+
+        # ----------------------------------------------------------------
+        # PASO 1: Inicializar la tabla DP de dimensiones (n+1) x (capacidad+1)
+        # tabla_dp[i][w] = valor óptimo usando los primeros i elementos con capacidad w GB
+        # ----------------------------------------------------------------
+        tabla_dp = [
+            [0 for _ in range(self.capacidad + 1)]
+            for _ in range(num_elementos + 1)
+        ]
+
+        # ----------------------------------------------------------------
+        # PASO 2: Llenar la tabla aplicando la recurrencia de Bellman
+        # ----------------------------------------------------------------
+        for i in range(1, num_elementos + 1):
+            elem = self.elementos[i - 1]
+            for w in range(self.capacidad + 1):
+                if elem.peso <= w:
+                    # OPCIÓN A: incluir el elemento → tomamos el mejor de incluirlo o no
+                    # OPCIÓN B: no incluir el elemento → heredamos el valor anterior
+                    tabla_dp[i][w] = max(
+                        tabla_dp[i - 1][w],                              # No incluir
+                        tabla_dp[i - 1][w - elem.peso] + elem.valor      # Incluir
                     )
                 else:
-                    dp[i][w] = dp[i - 1][w]
+                    # El elemento pesa más de lo que queda de capacidad: no puede incluirse
+                    tabla_dp[i][w] = tabla_dp[i - 1][w]
 
-        # Reconstrucción del conjunto óptimo (Traceback)
-        selected_items = []
-        w = self.capacity
-        for i in range(n, 0, -1):
-            # Si el valor cambió en la fila, significa que incluimos el elemento i-1
-            if dp[i][w] != dp[i - 1][w]:
-                item = self.items[i - 1]
-                selected_items.append(item)
-                w -= item.weight
+        # ----------------------------------------------------------------
+        # PASO 3: Reconstrucción del conjunto óptimo (Traceback o Rastreo)
+        # Recorremos la tabla de abajo hacia arriba para identificar qué elementos se eligieron
+        # ----------------------------------------------------------------
+        seleccionados: List[Microservicio] = []
+        capacidad_restante = self.capacidad
 
-        # Revertir la lista para conservar el orden original
-        selected_items.reverse()
+        for i in range(num_elementos, 0, -1):
+            # Si el valor cambió en la fila i respecto a i-1, el elemento i-1 fue incluido
+            if tabla_dp[i][capacidad_restante] != tabla_dp[i - 1][capacidad_restante]:
+                elem = self.elementos[i - 1]
+                seleccionados.append(elem)
+                capacidad_restante -= elem.peso  # Reducir la capacidad disponible
 
-        # Preparar la matriz paso a paso legible para el reporte y frontend
-        # Filas representarán la etapa (incorporación de microservicio i)
-        # Columnas serán la capacidad de 0 a capacity
-        table_rows = []
-        for i in range(n + 1):
-            row_label = "Estado Inicial" if i == 0 else f"{self.items[i - 1].name} (+{self.items[i - 1].weight}GB, V:{self.items[i - 1].value})"
-            table_rows.append({
-                "row_label": row_label,
-                "values": dp[i]
+        # Invertir para mostrar en orden de incorporación (de arriba hacia abajo)
+        seleccionados.reverse()
+
+        # ----------------------------------------------------------------
+        # PASO 4: Formatear la tabla DP paso a paso para el reporte y el frontend
+        # Cada fila corresponde a la incorporación de un microservicio adicional
+        # ----------------------------------------------------------------
+        filas_tabla = []
+        for i in range(num_elementos + 1):
+            if i == 0:
+                etiqueta = "Estado Inicial (sin microservicios)"
+            else:
+                elem = self.elementos[i - 1]
+                etiqueta = f"{elem.nombre} (+{elem.peso}GB, V:{elem.valor})"
+
+            filas_tabla.append({
+                "etiqueta_fila": etiqueta,
+                "valores":       tabla_dp[i]   # Lista de valores para w = 0..capacidad
             })
 
-        self.result = {
-            "capacity": self.capacity,
-            "total_items": n,
-            "max_value": dp[n][self.capacity],
-            "used_weight": sum(item.weight for item in selected_items),
-            "selected_items": [item.to_dict() for item in selected_items],
-            "step_by_step_table": {
-                "headers": [f"{w} GB" for w in range(self.capacity + 1)],
-                "rows": table_rows
+        # ----------------------------------------------------------------
+        # Guardar y retornar el resultado completo
+        # ----------------------------------------------------------------
+        self.resultado = {
+            "capacidad":          self.capacidad,
+            "total_elementos":    num_elementos,
+            "valor_maximo":       tabla_dp[num_elementos][self.capacidad],
+            "peso_utilizado":     sum(e.peso for e in seleccionados),
+            "elementos_elegidos": [e.a_diccionario() for e in seleccionados],
+            "tabla_paso_a_paso": {
+                "encabezados": [f"{w} GB" for w in range(self.capacidad + 1)],
+                "filas":       filas_tabla
             }
         }
-        return self.result
+        return self.resultado

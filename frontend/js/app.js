@@ -3,54 +3,54 @@
  */
 
 // ESTADO GLOBAL DE LA APLICACIÓN
-const STATE = {
+const ESTADO = {
     // Sub-problema A: Servidores (Mochila)
-    knapsack: {
-        capacity: 16,
-        items: []
+    mochila: {
+        capacidad: 16,
+        elementos: []
     },
     // Sub-problema B: Enrutamiento (Ruta por Etapas)
-    routing: {
-        stages: [],
-        connections: {}
+    enrutamiento: {
+        etapas: [],
+        conexiones: {}
     },
     // Parte II: Mercadeo (No Lineal)
     marketing: {
-        budget: 10.0,
+        presupuesto: 10.0,
         c1: 4.0,
         c2: 5.0,
         a1: 0.2,
         a2: 0.3
     },
     // Resultados calculados guardados para IA y PDF
-    results: {
-        knapsack: null,
-        routing: null,
+    resultados: {
+        mochila: null,
+        enrutamiento: null,
         marketing: null,
-        aiConclusions: null
+        conclusionesIA: null
     }
 };
 
 // VALORES ACADÉMICOS PREESTABLECIDOS POR EL PDF (DATOS POR DEFECTO)
-const DEFAULT_VALUES = {
-    knapsack: {
-        capacity: 16,
-        items: [
-            { id: 1, name: "Autenticación y Seguridad", weight: 3, value: 5 },
-            { id: 2, name: "Matchmaking (Emparejamiento)", weight: 4, value: 7 },
-            { id: 3, name: "Sincronización de Estado (Física)", weight: 7, value: 11 },
-            { id: 4, name: "Base de Datos Caché", weight: 5, value: 8 }
+const VALORES_DEFECTO = {
+    mochila: {
+        capacidad: 16,
+        elementos: [
+            { id: 1, nombre: "Autenticación y Seguridad", peso: 3, valor: 5 },
+            { id: 2, nombre: "Matchmaking (Emparejamiento)", peso: 4, valor: 7 },
+            { id: 3, nombre: "Sincronización de Estado (Física)", peso: 7, valor: 11 },
+            { id: 4, nombre: "Base de Datos Caché", peso: 5, valor: 8 }
         ]
     },
-    routing: {
-        stages: [
+    enrutamiento: {
+        etapas: [
             ["A"],
             ["B", "C", "D"],
             ["E", "F", "G"],
             ["H", "I"],
             ["J"]
         ],
-        connections: {
+        conexiones: {
             "A": { "B": 4.0, "C": 6.0, "D": 3.0 },
             "B": { "E": 7.0, "F": 5.0 },
             "C": { "E": 3.0, "F": 8.0, "G": 4.0 },
@@ -63,7 +63,7 @@ const DEFAULT_VALUES = {
         }
     },
     marketing: {
-        budget: 10.0,
+        presupuesto: 10.0,
         c1: 4.0,
         c2: 5.0,
         a1: 0.2,
@@ -73,66 +73,66 @@ const DEFAULT_VALUES = {
 
 // INICIALIZACIÓN
 document.addEventListener("DOMContentLoaded", () => {
-    initApp();
-    setupEventListeners();
-    checkBackendHealth();
+    iniciarApp();
+    configurarEventos();
+    verificarSaludBackend();
     
     // Iniciar chequeo periódico cada 6 segundos
-    setInterval(checkBackendHealth, 6000);
+    setInterval(verificarSaludBackend, 6000);
 });
 
-function initApp() {
+function iniciarApp() {
     // Cargar valores por defecto
-    restoreDefaults();
+    restaurarValoresDefecto();
     
     // Mostrar sección inicial (Dashboard)
-    UI.showSection("dashboard-section");
+    UI.mostrarSeccion("dashboard-section");
     
     // Renderizar inputs iniciales
-    UI.renderKnapsackInputs(STATE.knapsack.items);
-    UI.renderRoutingInputs(STATE.routing.stages, STATE.routing.connections);
+    UI.renderizarInputsMochila(ESTADO.mochila.elementos);
+    UI.renderizarInputsEnrutamiento(ESTADO.enrutamiento.etapas, ESTADO.enrutamiento.conexiones);
     
     // Rellenar inputs de marketing en el HTML
-    document.getElementById("mkt-budget").value = STATE.marketing.budget;
-    document.getElementById("mkt-c1").value = STATE.marketing.c1;
-    document.getElementById("mkt-a1").value = STATE.marketing.a1;
-    document.getElementById("mkt-c2").value = STATE.marketing.c2;
-    document.getElementById("mkt-a2").value = STATE.marketing.a2;
+    document.getElementById("mkt-budget").value = ESTADO.marketing.presupuesto;
+    document.getElementById("mkt-c1").value = ESTADO.marketing.c1;
+    document.getElementById("mkt-a1").value = ESTADO.marketing.a1;
+    document.getElementById("mkt-c2").value = ESTADO.marketing.c2;
+    document.getElementById("mkt-a2").value = ESTADO.marketing.a2;
 
     // Inicializar íconos de Lucide
     lucide.createIcons();
 }
 
-function restoreDefaults() {
-    STATE.knapsack = JSON.parse(JSON.stringify(DEFAULT_VALUES.knapsack));
-    STATE.routing = JSON.parse(JSON.stringify(DEFAULT_VALUES.routing));
-    STATE.marketing = JSON.parse(JSON.stringify(DEFAULT_VALUES.marketing));
+function restaurarValoresDefecto() {
+    ESTADO.mochila = JSON.parse(JSON.stringify(VALORES_DEFECTO.mochila));
+    ESTADO.enrutamiento = JSON.parse(JSON.stringify(VALORES_DEFECTO.enrutamiento));
+    ESTADO.marketing = JSON.parse(JSON.stringify(VALORES_DEFECTO.marketing));
 }
 
 // CONFIGURACIÓN DE EVENT LISTENERS
-function setupEventListeners() {
+function configurarEventos() {
     // Navegación Sidebar
     document.querySelectorAll(".nav-item").forEach(btn => {
         btn.addEventListener("click", (e) => {
             const target = btn.getAttribute("data-target");
-            UI.showSection(target);
+            UI.mostrarSeccion(target);
             
             // Si entramos a la sección de enrutamiento, redibujamos el canvas para evitar distorsiones
-            if (target === "routing-section" && STATE.results.routing) {
+            if (target === "routing-section" && ESTADO.resultados.enrutamiento) {
                 setTimeout(() => {
-                    UI.drawRoutingGraph(
-                        STATE.results.routing.stages_data,
-                        STATE.results.routing.connections_data,
-                        STATE.results.routing.optimal_path
+                    UI.dibujarGrafoEnrutamiento(
+                        ESTADO.resultados.enrutamiento.etapas_datos,
+                        ESTADO.resultados.enrutamiento.conexiones_datos,
+                        ESTADO.resultados.enrutamiento.ruta_optima
                     );
                 }, 50);
             }
             // Si entramos a la sección de mercadeo, redibujamos el canvas del gráfico
-            if (target === "marketing-section" && STATE.results.marketing) {
+            if (target === "marketing-section" && ESTADO.resultados.marketing) {
                 setTimeout(() => {
-                    UI.drawMarketingChart(
-                        STATE.results.marketing.chart_points,
-                        STATE.results.marketing.constrained_optimum
+                    UI.dibujarGraficoMarketing(
+                        ESTADO.resultados.marketing.puntos_grafica,
+                        ESTADO.resultados.marketing.optimo_restringido
                     );
                 }, 50);
             }
@@ -148,19 +148,19 @@ function setupEventListeners() {
             btn.setAttribute("disabled", "true");
 
             // 1. Optimizar Carga de Servidores
-            await runKnapsackOptimization();
+            await ejecutarOptimizacionMochila();
             
             // 2. Optimizar Enrutamiento
-            await runRoutingOptimization();
+            await ejecutarOptimizacionEnrutamiento();
             
             // 3. Optimizar Presupuesto
-            await runMarketingOptimization();
+            await ejecutarOptimizacionMarketing();
             
             // Ir a la pestaña de reportes
-            UI.showSection("report-section");
+            UI.mostrarSeccion("report-section");
             
             // 4. Solicitar IA automáticamente
-            await runAIAnalysis();
+            await ejecutarAnalisisIA();
 
             btn.innerHTML = `<i data-lucide="zap"></i> Optimizar Todo`;
             btn.removeAttribute("disabled");
@@ -178,24 +178,24 @@ function setupEventListeners() {
 
     // Acción "Valores por Defecto"
     document.getElementById("btn-reset-defaults").addEventListener("click", () => {
-        initApp();
+        iniciarApp();
         alert("Se han restaurado los valores académicos por defecto de NexusCore Systems.");
     });
 
     // --- SECCIÓN A: MOCHILA (SERVIDORES) ---
     // Botón Agregar Microservicio
     document.getElementById("btn-add-ms").addEventListener("click", () => {
-        const nextId = STATE.knapsack.items.length > 0 
-            ? Math.max(...STATE.knapsack.items.map(item => item.id)) + 1 
+        const nextId = ESTADO.mochila.elementos.length > 0 
+            ? Math.max(...ESTADO.mochila.elementos.map(item => item.id)) + 1 
             : 1;
         
-        STATE.knapsack.items.push({
+        ESTADO.mochila.elementos.push({
             id: nextId,
-            name: `Microservicio Nuevo`,
-            weight: 2,
-            value: 4
+            nombre: `Microservicio Nuevo`,
+            peso: 2,
+            valor: 4
         });
-        UI.renderKnapsackInputs(STATE.knapsack.items);
+        UI.renderizarInputsMochila(ESTADO.mochila.elementos);
     });
 
     // Escuchar cambios en los inputs de microservicios
@@ -205,11 +205,11 @@ function setupEventListeners() {
         if (isNaN(index)) return;
         
         if (e.target.classList.contains("ms-name-input")) {
-            STATE.knapsack.items[index].name = e.target.value;
+            ESTADO.mochila.elementos[index].nombre = e.target.value;
         } else if (e.target.classList.contains("ms-weight-input")) {
-            STATE.knapsack.items[index].weight = parseInt(e.target.value) || 1;
+            ESTADO.mochila.elementos[index].peso = parseInt(e.target.value) || 1;
         } else if (e.target.classList.contains("ms-value-input")) {
-            STATE.knapsack.items[index].value = parseInt(e.target.value) || 0;
+            ESTADO.mochila.elementos[index].valor = parseInt(e.target.value) || 0;
         }
     });
 
@@ -219,17 +219,17 @@ function setupEventListeners() {
         if (!btn) return;
         
         const index = parseInt(btn.getAttribute("data-index"));
-        STATE.knapsack.items.splice(index, 1);
-        UI.renderKnapsackInputs(STATE.knapsack.items);
+        ESTADO.mochila.elementos.splice(index, 1);
+        UI.renderizarInputsMochila(ESTADO.mochila.elementos);
     });
 
     // Botón Optimizar Mochila
     document.getElementById("btn-optimize-knap").addEventListener("click", async () => {
         const capInput = parseInt(document.getElementById("knap-capacity").value);
-        STATE.knapsack.capacity = isNaN(capInput) ? 16 : capInput;
+        ESTADO.mochila.capacidad = isNaN(capInput) ? 16 : capInput;
         
         try {
-            await runKnapsackOptimization();
+            await ejecutarOptimizacionMochila();
             alert("¡Optimización de servidores completada con éxito!");
         } catch (error) {
             alert(`Error al optimizar: ${error.message}`);
@@ -246,15 +246,15 @@ function setupEventListeners() {
             
             if (nodes.length === 0) {
                 alert("Una etapa debe contener al menos un nodo.");
-                UI.renderRoutingInputs(STATE.routing.stages, STATE.routing.connections);
+                UI.renderizarInputsEnrutamiento(ESTADO.enrutamiento.etapas, ESTADO.enrutamiento.conexiones);
                 return;
             }
             
-            STATE.routing.stages[index] = nodes;
+            ESTADO.enrutamiento.etapas[index] = nodes;
             
             // Re-sincronizar conexiones eliminando nodos que ya no existen
-            sanitizeConnections();
-            UI.renderRoutingInputs(STATE.routing.stages, STATE.routing.connections);
+            sanearConexiones();
+            UI.renderizarInputsEnrutamiento(ESTADO.enrutamiento.etapas, ESTADO.enrutamiento.conexiones);
         }
     });
 
@@ -271,17 +271,17 @@ function setupEventListeners() {
                 return;
             }
             
-            if (!STATE.routing.connections[fromNode]) {
-                STATE.routing.connections[fromNode] = {};
+            if (!ESTADO.enrutamiento.conexiones[fromNode]) {
+                ESTADO.enrutamiento.conexiones[fromNode] = {};
             }
-            STATE.routing.connections[fromNode][toNode] = value;
+            ESTADO.enrutamiento.conexiones[fromNode][toNode] = value;
         }
     });
 
     // Botón calcular Ruta Crítica
     document.getElementById("btn-optimize-routing").addEventListener("click", async () => {
         try {
-            await runRoutingOptimization();
+            await ejecutarOptimizacionEnrutamiento();
             alert("¡Ruta crítica por etapas calculada correctamente!");
         } catch (error) {
             alert(`Error en ruta crítica: ${error.message}`);
@@ -292,13 +292,13 @@ function setupEventListeners() {
     document.getElementById("btn-optimize-marketing").addEventListener("click", async () => {
         try {
             // Leer valores del HTML
-            STATE.marketing.budget = parseFloat(document.getElementById("mkt-budget").value) || 10.0;
-            STATE.marketing.c1 = parseFloat(document.getElementById("mkt-c1").value) || 4.0;
-            STATE.marketing.a1 = parseFloat(document.getElementById("mkt-a1").value) || 0.2;
-            STATE.marketing.c2 = parseFloat(document.getElementById("mkt-c2").value) || 5.0;
-            STATE.marketing.a2 = parseFloat(document.getElementById("mkt-a2").value) || 0.3;
+            ESTADO.marketing.presupuesto = parseFloat(document.getElementById("mkt-budget").value) || 10.0;
+            ESTADO.marketing.c1 = parseFloat(document.getElementById("mkt-c1").value) || 4.0;
+            ESTADO.marketing.a1 = parseFloat(document.getElementById("mkt-a1").value) || 0.2;
+            ESTADO.marketing.c2 = parseFloat(document.getElementById("mkt-c2").value) || 5.0;
+            ESTADO.marketing.a2 = parseFloat(document.getElementById("mkt-a2").value) || 0.3;
             
-            await runMarketingOptimization();
+            await ejecutarOptimizacionMarketing();
             alert("¡Optimización de presupuesto no lineal completada!");
         } catch (error) {
             alert(`Error al optimizar presupuesto: ${error.message}`);
@@ -309,13 +309,13 @@ function setupEventListeners() {
     // Generar Análisis de Groq
     document.getElementById("btn-request-ai").addEventListener("click", async () => {
         // Validar que tengamos los 3 resultados matemáticos
-        if (!STATE.results.knapsack || !STATE.results.routing || !STATE.results.marketing) {
+        if (!ESTADO.resultados.mochila || !ESTADO.resultados.enrutamiento || !ESTADO.resultados.marketing) {
             alert("Primero debe calcular los tres problemas matemáticos de optimización (puede presionar 'Optimizar Todo' en la cabecera).");
             return;
         }
         
         try {
-            await runAIAnalysis();
+            await ejecutarAnalisisIA();
         } catch (error) {
             alert(`Error en IA: ${error.message}`);
         }
@@ -323,7 +323,7 @@ function setupEventListeners() {
 
     // Descargar Reporte PDF
     document.getElementById("btn-download-pdf").addEventListener("click", async () => {
-        if (!STATE.results.knapsack || !STATE.results.routing || !STATE.results.marketing || !STATE.results.aiConclusions) {
+        if (!ESTADO.resultados.mochila || !ESTADO.resultados.enrutamiento || !ESTADO.resultados.marketing || !ESTADO.resultados.conclusionesIA) {
             alert("Se requieren todos los resultados cuantitativos y cualitativos para generar el reporte PDF consolidado.");
             return;
         }
@@ -333,11 +333,11 @@ function setupEventListeners() {
             btn.innerHTML = `<div class="spinner" style="width:12px; height:12px; margin:0"></div> Descargando...`;
             btn.setAttribute("disabled", "true");
             
-            const pdfBlob = await API.downloadPdfReport(
-                STATE.results.knapsack,
-                STATE.results.routing,
-                STATE.results.marketing,
-                STATE.results.aiConclusions
+            const pdfBlob = await API.descargarReportePdf(
+                ESTADO.resultados.mochila,
+                ESTADO.resultados.enrutamiento,
+                ESTADO.resultados.marketing,
+                ESTADO.resultados.conclusionesIA
             );
             
             // Disparar descarga en navegador
@@ -365,16 +365,16 @@ function setupEventListeners() {
 }
 
 // SANEADOR DE CONEXIONES (Remueve destinos inexistentes)
-function sanitizeConnections() {
-    const allNodes = new Set(STATE.routing.stages.flat());
+function sanearConexiones() {
+    const allNodes = new Set(ESTADO.enrutamiento.etapas.flat());
     const sanitized = {};
     
-    for (const fromNode in STATE.routing.connections) {
+    for (const fromNode in ESTADO.enrutamiento.conexiones) {
         if (allNodes.has(fromNode)) {
             sanitized[fromNode] = {};
-            for (const toNode in STATE.routing.connections[fromNode]) {
+            for (const toNode in ESTADO.enrutamiento.conexiones[fromNode]) {
                 if (allNodes.has(toNode)) {
-                    sanitized[fromNode][toNode] = STATE.routing.connections[fromNode][toNode];
+                    sanitized[fromNode][toNode] = ESTADO.enrutamiento.conexiones[fromNode][toNode];
                 }
             }
             if (Object.keys(sanitized[fromNode]).length === 0) {
@@ -384,9 +384,9 @@ function sanitizeConnections() {
     }
     
     // Si faltan aristas entre etapas contiguas, creamos aristas vacías (costo = 5.0 por defecto) para mantener conectividad
-    for (let s = 0; s < STATE.routing.stages.length - 1; s++) {
-        const fromNodes = STATE.routing.stages[s];
-        const toNodes = STATE.routing.stages[s+1];
+    for (let s = 0; s < ESTADO.enrutamiento.etapas.length - 1; s++) {
+        const fromNodes = ESTADO.enrutamiento.etapas[s];
+        const toNodes = ESTADO.enrutamiento.etapas[s+1];
         
         fromNodes.forEach(fromNode => {
             toNodes.forEach(toNode => {
@@ -398,57 +398,57 @@ function sanitizeConnections() {
         });
     }
     
-    STATE.routing.connections = sanitized;
+    ESTADO.enrutamiento.conexiones = sanitized;
 }
 
 // FUNCIONES DE EJECUCIÓN (Llamadas API y actualización visual)
 
-async function runKnapsackOptimization() {
-    const res = await API.optimizeKnapsack(STATE.knapsack.capacity, STATE.knapsack.items);
-    STATE.results.knapsack = res;
-    UI.renderKnapsackResults(res);
+async function ejecutarOptimizacionMochila() {
+    const res = await API.optimizarMochila(ESTADO.mochila.capacidad, ESTADO.mochila.elementos);
+    ESTADO.resultados.mochila = res;
+    UI.renderizarResultadosMochila(res);
     return res;
 }
 
-async function runRoutingOptimization() {
-    const res = await API.optimizeStagecoach(STATE.routing.stages, STATE.routing.connections);
-    STATE.results.routing = res;
-    UI.renderRoutingResults(res);
+async function ejecutarOptimizacionEnrutamiento() {
+    const res = await API.optimizarRutaEtapas(ESTADO.enrutamiento.etapas, ESTADO.enrutamiento.conexiones);
+    ESTADO.resultados.enrutamiento = res;
+    UI.renderizarResultadosEnrutamiento(res);
     return res;
 }
 
-async function runMarketingOptimization() {
-    const res = await API.optimizeNonLinear(
-        STATE.marketing.budget,
-        STATE.marketing.c1,
-        STATE.marketing.c2,
-        STATE.marketing.a1,
-        STATE.marketing.a2
+async function ejecutarOptimizacionMarketing() {
+    const res = await API.optimizarNoLineal(
+        ESTADO.marketing.presupuesto,
+        ESTADO.marketing.c1,
+        ESTADO.marketing.c2,
+        ESTADO.marketing.a1,
+        ESTADO.marketing.a2
     );
-    STATE.results.marketing = res;
-    UI.renderMarketingResults(res);
+    ESTADO.resultados.marketing = res;
+    UI.renderizarResultadosMarketing(res);
     return res;
 }
 
-async function runAIAnalysis() {
-    UI.renderAiLoading();
+async function ejecutarAnalisisIA() {
+    UI.renderizarCargaIA();
     try {
-        const res = await API.getAIAnalysis(
-            STATE.results.knapsack,
-            STATE.results.routing,
-            STATE.results.marketing
+        const res = await API.obtenerAnalisisIA(
+            ESTADO.resultados.mochila,
+            ESTADO.resultados.enrutamiento,
+            ESTADO.resultados.marketing
         );
-        STATE.results.aiConclusions = res.conclusions;
-        UI.renderAiResult(res.conclusions);
+        ESTADO.resultados.conclusionesIA = res.conclusiones;
+        UI.renderizarResultadoIA(res.conclusiones);
         return res;
     } catch (error) {
-        UI.renderAiError(error.message);
+        UI.renderizarErrorIA(error.message);
         throw error;
     }
 }
 
 // CONTROLADOR DE SALUD DEL BACKEND
-async function checkBackendHealth() {
-    const isOnline = await API.checkStatus();
-    UI.updateBackendStatus(isOnline);
+async function verificarSaludBackend() {
+    const enLinea = await API.comprobarEstado();
+    UI.actualizarEstadoBackend(enLinea);
 }

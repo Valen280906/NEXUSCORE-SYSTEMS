@@ -7,7 +7,7 @@ const UI = {
     // ----------------------------------------------------
     // MÓDULO GENERAL / MENÚS
     // ----------------------------------------------------
-    showSection(sectionId) {
+    mostrarSeccion(sectionId) {
         document.querySelectorAll(".content-section").forEach(sec => {
             sec.classList.remove("active");
         });
@@ -44,7 +44,7 @@ const UI = {
         }
     },
 
-    updateBackendStatus(isOnline) {
+    actualizarEstadoBackend(isOnline) {
         const dot = document.querySelector(".pulse-dot");
         const text = document.querySelector(".status-text");
         if (isOnline) {
@@ -59,17 +59,17 @@ const UI = {
     // ----------------------------------------------------
     // DIBUJAR FORMULARIO E INGRESO DE MOCHILA (Servidores)
     // ----------------------------------------------------
-    renderKnapsackInputs(items) {
+    renderizarInputsMochila(elementos) {
         const tbody = document.getElementById("ms-inputs-body");
         tbody.innerHTML = "";
         
-        items.forEach((item, index) => {
+        elementos.forEach((item, index) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
                 <td><span style="font-family: var(--font-mono); color: var(--color-primary)">${item.id}</span></td>
-                <td><input type="text" value="${item.name}" class="ms-name-input" data-index="${index}"></td>
-                <td><input type="number" value="${item.weight}" min="1" max="128" class="ms-weight-input" data-index="${index}"></td>
-                <td><input type="number" value="${item.value}" min="0" class="ms-value-input" data-index="${index}"></td>
+                <td><input type="text" value="${item.nombre}" class="ms-name-input" data-index="${index}"></td>
+                <td><input type="number" value="${item.peso}" min="1" max="128" class="ms-weight-input" data-index="${index}"></td>
+                <td><input type="number" value="${item.valor}" min="0" class="ms-value-input" data-index="${index}"></td>
                 <td>
                     <button class="btn-remove-row" data-index="${index}">
                         <i data-lucide="trash-2"></i>
@@ -83,29 +83,29 @@ const UI = {
         lucide.createIcons();
     },
 
-    renderKnapsackResults(result) {
-        document.getElementById("knap-max-value").textContent = result.max_value;
-        document.getElementById("knap-used-weight").textContent = `${result.used_weight} / ${result.capacity} GB`;
+    renderizarResultadosMochila(resultado) {
+        document.getElementById("knap-max-value").textContent = resultado.valor_maximo;
+        document.getElementById("knap-used-weight").textContent = `${resultado.peso_utilizado} / ${resultado.capacidad} GB`;
         
         // Actualizar dashboard
-        document.getElementById("dash-stability-val").textContent = `Estabilidad: ${result.max_value}`;
-        document.getElementById("dash-stability-lbl").textContent = `${result.used_weight}GB RAM utilizados`;
-        document.getElementById("mini-ram-cap").textContent = `${result.capacity} GB`;
-        document.getElementById("mini-ms-count").textContent = result.total_items;
+        document.getElementById("dash-stability-val").textContent = `Estabilidad: ${resultado.valor_maximo}`;
+        document.getElementById("dash-stability-lbl").textContent = `${resultado.peso_utilizado}GB RAM utilizados`;
+        document.getElementById("mini-ram-cap").textContent = `${resultado.capacidad} GB`;
+        document.getElementById("mini-ms-count").textContent = resultado.total_elementos;
 
         // Renderizar lista de seleccionados
         const selectedList = document.getElementById("knap-selected-list");
         selectedList.innerHTML = "";
         
-        if (result.selected_items.length === 0) {
+        if (resultado.elementos_elegidos.length === 0) {
             selectedList.innerHTML = `<p class="placeholder-text">Ninguno seleccionado (RAM insuficiente para estabilidad).</p>`;
         } else {
-            result.selected_items.forEach(item => {
+            resultado.elementos_elegidos.forEach(item => {
                 const div = document.createElement("div");
                 div.className = "selected-item-pill";
                 div.innerHTML = `
-                    <span><b>${item.name}</b></span>
-                    <span>RAM: <strong>${item.weight} GB</strong> | Estabilidad: <strong>+${item.value}</strong></span>
+                    <span><b>${item.nombre}</b></span>
+                    <span>RAM: <strong>${item.peso} GB</strong> | Estabilidad: <strong>+${item.valor}</strong></span>
                 `;
                 selectedList.appendChild(div);
             });
@@ -123,27 +123,27 @@ const UI = {
         thLabel.textContent = "Microservicio incorporado";
         headersTr.appendChild(thLabel);
         
-        result.step_by_step_table.headers.forEach(h => {
+        resultado.tabla_paso_a_paso.encabezados.forEach(h => {
             const th = document.createElement("th");
             th.textContent = h;
             headersTr.appendChild(th);
         });
 
         // Filas de datos
-        result.step_by_step_table.rows.forEach((row, rIdx) => {
+        resultado.tabla_paso_a_paso.filas.forEach((fila, rIdx) => {
             const tr = document.createElement("tr");
             
             const tdLabel = document.createElement("td");
             tdLabel.className = "row-header";
-            tdLabel.textContent = row.row_label;
+            tdLabel.textContent = fila.etiqueta_fila;
             tr.appendChild(tdLabel);
             
-            row.values.forEach((val, cIdx) => {
+            fila.valores.forEach((val, cIdx) => {
                 const td = document.createElement("td");
                 td.textContent = val;
                 
                 // Resaltar la última celda óptima
-                if (rIdx === result.step_by_step_table.rows.length - 1 && cIdx === row.values.length - 1) {
+                if (rIdx === resultado.tabla_paso_a_paso.filas.length - 1 && cIdx === fila.valores.length - 1) {
                     td.style.backgroundColor = "var(--color-primary-glow)";
                     td.style.color = "var(--color-primary)";
                     td.style.fontWeight = "700";
@@ -159,12 +159,12 @@ const UI = {
     // ----------------------------------------------------
     // INGRESO Y DISEÑO DE ENRUTAMIENTO (Ruta de Latencia)
     // ----------------------------------------------------
-    renderRoutingInputs(stages, connections) {
+    renderizarInputsEnrutamiento(etapas, conexiones) {
         // 1. Mostrar etapas e inputs
         const stagesContainer = document.getElementById("routing-stages-inputs");
         stagesContainer.innerHTML = "";
         
-        stages.forEach((stageNodes, sIdx) => {
+        etapas.forEach((stageNodes, sIdx) => {
             const div = document.createElement("div");
             div.className = "stage-input-row";
             div.style.marginBottom = "8px";
@@ -176,20 +176,20 @@ const UI = {
         });
 
         // Actualizar indicadores del Dashboard
-        document.getElementById("mini-nodes-count").textContent = `${stages.flat().length} (${stages[0][0]} - ${stages[stages.length - 1][0]})`;
+        document.getElementById("mini-nodes-count").textContent = `${etapas.flat().length} (${etapas[0][0]} - ${etapas[etapas.length - 1][0]})`;
 
         // 2. Editor de latencias de conexiones
         const connectionsContainer = document.getElementById("connections-editor-list");
         connectionsContainer.innerHTML = "";
         
         // Iteramos de manera ordenada por las etapas
-        for (let s = 0; s < stages.length - 1; s++) {
-            const fromNodes = stages[s];
-            const toNodes = stages[s+1];
+        for (let s = 0; s < etapas.length - 1; s++) {
+            const fromNodes = etapas[s];
+            const toNodes = etapas[s+1];
             
             fromNodes.forEach(fromNode => {
                 toNodes.forEach(toNode => {
-                    const latVal = connections[fromNode] ? connections[fromNode][toNode] : null;
+                    const latVal = conexiones[fromNode] ? conexiones[fromNode][toNode] : null;
                     if (latVal !== null && latVal !== undefined) {
                         const row = document.createElement("div");
                         row.className = "connection-edit-row";
@@ -205,24 +205,24 @@ const UI = {
         }
     },
 
-    renderRoutingResults(result) {
-        document.getElementById("routing-min-cost").textContent = `${result.min_cost.toFixed(1)} ms`;
-        document.getElementById("routing-optimal-path").textContent = result.optimal_path.join(" → ");
+    renderizarResultadosEnrutamiento(resultado) {
+        document.getElementById("routing-min-cost").textContent = `${resultado.costo_minimo.toFixed(1)} ms`;
+        document.getElementById("routing-optimal-path").textContent = resultado.ruta_optima.join(" → ");
         
         // Actualizar dashboard
-        document.getElementById("dash-latency-val").textContent = `${result.min_cost.toFixed(1)} ms`;
-        document.getElementById("dash-latency-lbl").textContent = `Ruta: ${result.optimal_path.join("→")}`;
+        document.getElementById("dash-latency-val").textContent = `${resultado.costo_minimo.toFixed(1)} ms`;
+        document.getElementById("dash-latency-lbl").textContent = `Ruta: ${resultado.ruta_optima.join("→")}`;
 
         // Renderizar Tablas Paso a Paso de las Etapas
         const tablesContainer = document.getElementById("routing-stage-tables-container");
         tablesContainer.innerHTML = "";
         
-        result.step_by_step_tables.forEach(table => {
+        resultado.tablas_paso_a_paso.forEach(tabla => {
             const tableDiv = document.createElement("div");
             tableDiv.style.marginBottom = "24px";
             
             const title = document.createElement("h4");
-            title.innerHTML = `<i data-lucide="table"></i> ${table.descripcion}`;
+            title.innerHTML = `<i data-lucide="table"></i> ${tabla.descripcion}`;
             title.style.fontSize = "0.9rem";
             title.style.color = "var(--color-primary)";
             title.style.marginBottom = "8px";
@@ -237,7 +237,7 @@ const UI = {
             // Header
             const thead = document.createElement("thead");
             const headerTr = document.createElement("tr");
-            table.headers.forEach(h => {
+            tabla.encabezados.forEach(h => {
                 const th = document.createElement("th");
                 th.textContent = h;
                 headerTr.appendChild(th);
@@ -247,7 +247,7 @@ const UI = {
             
             // Body
             const tbody = document.createElement("tbody");
-            table.rows.forEach(row => {
+            tabla.filas.forEach(row => {
                 const tr = document.createElement("tr");
                 row.forEach((cell, cellIdx) => {
                     const td = document.createElement("td");
@@ -280,12 +280,12 @@ const UI = {
         });
 
         // Dibujar el Grafo Interactivo
-        this.drawRoutingGraph(result.stages_data, result.connections_data, result.optimal_path);
+        this.dibujarGrafoEnrutamiento(resultado.etapas_datos, resultado.conexiones_datos, resultado.ruta_optima);
         
         lucide.createIcons();
     },
 
-    drawRoutingGraph(stages, connections, optimalPath) {
+    dibujarGrafoEnrutamiento(etapas, conexiones, rutaOptima) {
         const canvas = document.getElementById("routing-canvas");
         if (!canvas) return;
         
@@ -305,9 +305,9 @@ const UI = {
         
         // Calcular coordenadas físicas para cada nodo
         const nodeCoords = {};
-        const stageSpacing = width / (stages.length + 1);
+        const stageSpacing = width / (etapas.length + 1);
         
-        stages.forEach((stageNodes, sIdx) => {
+        etapas.forEach((stageNodes, sIdx) => {
             const x = stageSpacing * (sIdx + 1);
             const numNodes = stageNodes.length;
             const nodeSpacing = height / (numNodes + 1);
@@ -319,18 +319,18 @@ const UI = {
         });
 
         // 1. Dibujar conexiones (Aristas)
-        for (const fromNode in connections) {
+        for (const fromNode in conexiones) {
             const fromCoord = nodeCoords[fromNode];
             if (!fromCoord) continue;
             
-            for (const toNode in connections[fromNode]) {
+            for (const toNode in conexiones[fromNode]) {
                 const toCoord = nodeCoords[toNode];
                 if (!toCoord) continue;
                 
-                const latency = connections[fromNode][toNode];
+                const latency = conexiones[fromNode][toNode];
                 
                 // Determinar si la conexión es parte de la ruta óptima
-                const isOptimalConnection = this.isConnectionInPath(fromNode, toNode, optimalPath);
+                const isOptimalConnection = this.esConexionOptima(fromNode, toNode, rutaOptima);
                 
                 // Estilo de arista
                 ctx.beginPath();
@@ -364,7 +364,7 @@ const UI = {
         ctx.shadowBlur = 0;
         for (const nodeName in nodeCoords) {
             const coord = nodeCoords[nodeName];
-            const isOptimalNode = optimalPath.includes(nodeName);
+            const isOptimalNode = rutaOptima.includes(nodeName);
             
             // Dibujar círculo exterior
             ctx.beginPath();
@@ -395,7 +395,7 @@ const UI = {
         }
     },
 
-    isConnectionInPath(fromNode, toNode, path) {
+    esConexionOptima(fromNode, toNode, path) {
         for (let i = 0; i < path.length - 1; i++) {
             if (path[i] === fromNode && path[i + 1] === toNode) {
                 return true;
@@ -407,19 +407,19 @@ const UI = {
     // ----------------------------------------------------
     // MÓDULO DE MARKETING (Optimización No Lineal)
     // ----------------------------------------------------
-    renderMarketingResults(result) {
-        const opt = result.constrained_optimum;
-        const budget = result.budget;
+    renderizarResultadosMarketing(resultado) {
+        const opt = resultado.optimo_restringido;
+        const budget = resultado.presupuesto;
         
         // Usuarios estimados y estado
-        document.getElementById("mkt-max-acquisition").textContent = `${(opt.value * 1000).toLocaleString('es-ES', {maximumFractionDigits:0})} nuevos jugadores`;
+        document.getElementById("mkt-max-acquisition").textContent = `${(opt.valor * 1000).toLocaleString('es-ES', {maximumFractionDigits:0})} nuevos jugadores`;
         document.getElementById("mini-mkt-budget").textContent = `$${(budget * 1000).toLocaleString('es-ES', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
         
         // Dashboard principal
-        document.getElementById("dash-users-val").textContent = `${(opt.value * 1000).toLocaleString('es-ES', {maximumFractionDigits:0})} usuarios`;
+        document.getElementById("dash-users-val").textContent = `${(opt.valor * 1000).toLocaleString('es-ES', {maximumFractionDigits:0})} usuarios`;
         document.getElementById("dash-users-lbl").textContent = `Retorno máximo asignado`;
 
-        const isBudgetActive = result.is_budget_active;
+        const isBudgetActive = resultado.restriccion_activa;
         const statusEl = document.getElementById("mkt-constraint-status");
         if (isBudgetActive) {
             statusEl.textContent = "Presupuesto Agotado ($100% Utilizado)";
@@ -443,7 +443,7 @@ const UI = {
         document.getElementById("mkt-x2-fill").style.width = `${x2Pct}%`;
 
         // Datos del Máximo Teórico Irrestricto
-        const unconstrained = result.unconstrained_optimum;
+        const unconstrained = resultado.optimo_irrestricto;
         const descBox = document.getElementById("mkt-unconstrained-desc");
         if (unconstrained.x1 === "inf") {
             descBox.textContent = "No existe un máximo global cerrado (coeficientes nulos o divergentes).";
@@ -453,12 +453,29 @@ const UI = {
             • Anuncios ($x_2$): <b>$${(unconstrained.x2 * 1000).toLocaleString('es-ES', {maximumFractionDigits:2})} USD</b><br/>
             • Presupuesto requerido: <b>$${((unconstrained.x1 + unconstrained.x2) * 1000).toLocaleString('es-ES', {maximumFractionDigits:2})} USD</b>.`;
         }
+        
+        // Método de Lagrange
+        const lagrangeDesc = document.getElementById("mkt-lagrange-desc");
+        if (resultado.restriccion_activa && resultado.metodo_lagrange.multiplicador_lambda !== undefined) {
+            lagrangeDesc.innerHTML = `Multiplicador $\\lambda$ = <b>${resultado.metodo_lagrange.multiplicador_lambda}</b><br/>
+            ${resultado.metodo_lagrange.interpretacion}`;
+        } else {
+            lagrangeDesc.textContent = resultado.metodo_lagrange.nota || "La restricción no está activa. No se aplica Lagrange.";
+        }
+
+        // Método de Gradiente
+        const gradientDesc = document.getElementById("mkt-gradient-desc");
+        if (resultado.metodo_gradiente) {
+            const convStr = resultado.metodo_gradiente.convergido ? "Sí" : "Límite de iteraciones alcanzado";
+            gradientDesc.innerHTML = `Iteraciones: <b>${resultado.metodo_gradiente.iteraciones_totales}</b> | Convergió: <b>${convStr}</b><br/>
+            Valor estimado por gradiente: <b>${(resultado.metodo_gradiente.valor_optimo * 1000).toFixed(0)} usuarios</b>`;
+        }
 
         // Dibujar curva no lineal en Canvas
-        this.drawMarketingChart(result.chart_points, opt);
+        this.dibujarGraficoMarketing(resultado.puntos_grafica, opt);
     },
 
-    drawMarketingChart(points, optimal) {
+    dibujarGraficoMarketing(puntos, optimo) {
         const canvas = document.getElementById("marketing-canvas");
         if (!canvas) return;
         
@@ -474,14 +491,16 @@ const UI = {
         
         ctx.clearRect(0, 0, w, h);
         
+        if (!puntos || puntos.length === 0) return;
+
         // Márgenes del gráfico
         const padding = { top: 20, right: 30, bottom: 40, left: 50 };
         const chartW = w - padding.left - padding.right;
         const chartH = h - padding.top - padding.bottom;
         
         // Encontrar escalas
-        const maxValY = Math.max(...points.map(p => p.acquisition)) * 1.15;
-        const maxValX = Math.max(...points.map(p => p.x1));
+        const maxValY = Math.max(...puntos.map(p => p.adquisicion)) * 1.15;
+        const maxValX = Math.max(...puntos.map(p => p.x1));
         
         const getX = (x1) => padding.left + (x1 / maxValX) * chartW;
         const getY = (acq) => padding.top + chartH - (acq / maxValY) * chartH;
@@ -533,9 +552,9 @@ const UI = {
 
         // 2. Dibujar la curva no lineal g(x1) frente al presupuesto total active
         ctx.beginPath();
-        points.forEach((p, idx) => {
+        puntos.forEach((p, idx) => {
             const px = getX(p.x1);
-            const py = getY(p.acquisition);
+            const py = getY(p.adquisicion);
             if (idx === 0) ctx.moveTo(px, py);
             else ctx.lineTo(px, py);
         });
@@ -549,15 +568,15 @@ const UI = {
         grad.addColorStop(0, "rgba(192, 132, 252, 0.18)");
         grad.addColorStop(1, "rgba(192, 132, 252, 0)");
         
-        ctx.lineTo(getX(points[points.length-1].x1), padding.top + chartH);
-        ctx.lineTo(getX(points[0].x1), padding.top + chartH);
+        ctx.lineTo(getX(puntos[puntos.length-1].x1), padding.top + chartH);
+        ctx.lineTo(getX(puntos[0].x1), padding.top + chartH);
         ctx.closePath();
         ctx.fillStyle = grad;
         ctx.fill();
 
         // 3. Resaltar el Punto Óptimo Máximo Calculado
-        const optX = getX(optimal.x1);
-        const optY = getY(optimal.value);
+        const optX = getX(optimo.x1);
+        const optY = getY(optimo.valor);
         
         // Líneas punteadas hacia los ejes
         ctx.strokeStyle = "rgba(56, 189, 248, 0.5)";
@@ -588,13 +607,13 @@ const UI = {
         ctx.fillStyle = "#ffffff";
         ctx.font = "bold 10px var(--font-sans)";
         ctx.textAlign = "left";
-        ctx.fillText(`Óptimo: ${(optimal.value * 1000).toFixed(0)} usuarios (x1=$${optimal.x1.toFixed(1)}k, x2=$${optimal.x2.toFixed(1)}k)`, optX + 10, optY - 8);
+        ctx.fillText(`Óptimo: ${(optimo.valor * 1000).toFixed(0)} usuarios (x1=$${optimo.x1.toFixed(1)}k, x2=$${optimo.x2.toFixed(1)}k)`, optX + 10, optY - 8);
     },
 
     // ----------------------------------------------------
     // MÓDULO DE IA Y REPORTE (Groq & PDF)
     // ----------------------------------------------------
-    renderAiLoading() {
+    renderizarCargaIA() {
         const body = document.getElementById("ai-content-body");
         body.innerHTML = `
             <div class="ai-loading-box">
@@ -605,7 +624,7 @@ const UI = {
         `;
     },
 
-    renderAiResult(markdownText) {
+    renderizarResultadoIA(markdownText) {
         const body = document.getElementById("ai-content-body");
         
         // Traductor sencillo de markdown a HTML para renderizar el texto enriquecido de Groq
@@ -643,7 +662,7 @@ const UI = {
         if (btnPdf) btnPdf.removeAttribute("disabled");
     },
 
-    renderAiError(errorMessage) {
+    renderizarErrorIA(errorMessage) {
         const body = document.getElementById("ai-content-body");
         body.innerHTML = `
             <div class="empty-ai-message" style="color: var(--color-error)">

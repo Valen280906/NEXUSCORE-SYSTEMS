@@ -1,7 +1,8 @@
-from .groq_service import GroqService
-from .pdf_service import PdfService
+# Exportaciones públicas del paquete de servicios
+from .groq_service import ServicioGroq
+from .pdf_service  import ServicioPdf
 
 __all__ = [
-    "GroqService",
-    "PdfService"
+    "ServicioGroq",
+    "ServicioPdf"
 ]

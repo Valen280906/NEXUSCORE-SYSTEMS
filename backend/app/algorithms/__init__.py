@@ -1,12 +1,13 @@
-from .base import BaseOptimizer
-from .knapsack import KnapsackOptimizer, Microservice
-from .stage_coach import StagecoachOptimizer
-from .non_linear import NonLinearOptimizer
+# Exportaciones públicas del paquete de algoritmos de optimización
+from .base       import OptimizadorBase
+from .knapsack   import OptimizadorMochila, Microservicio
+from .stage_coach import OptimizadorRutaPorEtapas
+from .non_linear import OptimizadorNoLineal
 
 __all__ = [
-    "BaseOptimizer",
-    "KnapsackOptimizer",
-    "Microservice",
-    "StagecoachOptimizer",
-    "NonLinearOptimizer"
+    "OptimizadorBase",
+    "OptimizadorMochila",
+    "Microservicio",
+    "OptimizadorRutaPorEtapas",
+    "OptimizadorNoLineal"
 ]

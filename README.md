@@ -2,11 +2,11 @@
 
 Este proyecto consiste en una aplicación web interactiva desarrollada para la toma de decisiones estratégicas de infraestructura y mercadeo en la empresa **NexusCore Systems**.
 
-La plataforma permite resolver complejos problemas de optimización cuantitativa mediante el uso de algoritmos basados en **Programación Dinámica** y **Optimización No Lineal** desarrollados desde cero en el backend (sin librerías externas de optimización). Adicionalmente, cuenta con un análisis cualitativo y estratégico generado por la inteligencia artificial de **Groq** (simulando el rol de un Director de Tecnología - CTO) y permite la exportación nativa de un reporte técnico formal en formato **PDF**.
+La plataforma permite resolver complejos problemas de optimización cuantitativa mediante el uso de algoritmos basados en **Programación Dinámica** y **Optimización No Lineal** desarrollados desde cero en el backend (sin librerías externas de optimización). Adicionalmente, cuenta con un análisis cualitativo y estratégico generado por la inteligencia artificial de **Groq** y permite la exportación nativa de un reporte técnico formal en formato **PDF**.
 
 ---
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 El sistema está estructurado bajo una arquitectura cliente-servidor moderna que separa el backend y el frontend, manteniendo el paradigma de **Programación Orientada a Objetos (POO)** en todas las capas del backend:
 
@@ -53,7 +53,7 @@ NEXUSCORE SYSTEMS/
 
 ---
 
-## ⚙️ Funcionalidades de cada Módulo
+## Funcionalidades de cada Módulo
 
 ### 1. Motor Algorítmico (`backend/app/algorithms/`)
 Cada algoritmo de resolución está encapsulado en una clase orientada a objetos que hereda de una clase abstracta común `BaseOptimizer` en `base.py`.
@@ -82,7 +82,7 @@ Cada algoritmo de resolución está encapsulado en una clase orientada a objetos
 
 ---
 
-## 🚦 Guía para Puesta en Marcha
+## Guía para Puesta en Marcha
 
 ### Prerrequisitos
 - Python 3.8 o superior instalado en el equipo.
@@ -113,7 +113,7 @@ Cada algoritmo de resolución está encapsulado en una clase orientada a objetos
 
 ---
 
-## 🧪 Pruebas Unitarias
+## Pruebas Unitarias
 
 Para comprobar que los motores matemáticos funcionan correctamente, ejecute el conjunto de pruebas unitarias con:
 ```bash

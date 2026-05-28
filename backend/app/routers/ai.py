@@ -3,69 +3,95 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Dict, Any
 import io
-from ..services.groq_service import GroqService
-from ..services.pdf_service import PdfService
 
-router = APIRouter(
-    prefix="/ai",
-    tags=["AI Integration & Export"]
+# Importar los servicios de integración IA y exportación PDF
+from ..services.groq_service import ServicioGroq
+from ..services.pdf_service  import ServicioPdf
+
+# Router con prefijo "/ia" y etiqueta visible en la documentación Swagger
+enrutador = APIRouter(
+    prefix="/ia",
+    tags=["Integración IA y Exportación PDF"]
 )
 
-class AnalysisRequest(BaseModel):
-    knapsack_result: Dict[str, Any] = Field(..., description="Resultados obtenidos del algoritmo de servidores")
-    routing_result: Dict[str, Any] = Field(..., description="Resultados obtenidos del algoritmo de enrutamiento")
-    marketing_result: Dict[str, Any] = Field(..., description="Resultados obtenidos del algoritmo de presupuesto")
 
-class ExportPdfRequest(BaseModel):
-    knapsack_result: Dict[str, Any] = Field(..., description="Resultados del algoritmo de servidores")
-    routing_result: Dict[str, Any] = Field(..., description="Resultados del algoritmo de enrutamiento")
-    marketing_result: Dict[str, Any] = Field(..., description="Resultados del algoritmo de presupuesto")
-    ai_conclusions: str = Field(..., description="Texto de conclusiones estratégicas del CTO (formato Markdown)")
+# ============================================================
+# MODELOS PYDANTIC — Validación de los datos de entrada
+# ============================================================
 
-@router.post("/analyze", status_code=status.HTTP_200_OK)
-async def analyze_results(payload: AnalysisRequest):
+class SolicitudAnalisis(BaseModel):
     """
-    Se conecta con la API de Groq para formular y recibir un
-    dictamen cualitativo y estratégico en rol de CTO.
+    Datos requeridos para solicitar el análisis estratégico del CTO.
+    Contiene los tres resultados numéricos de los algoritmos de optimización.
+    """
+    resultado_mochila:     Dict[str, Any] = Field(..., description="Resultados del Sub-problema A (Mochila de Servidores)")
+    resultado_enrutamiento: Dict[str, Any] = Field(..., description="Resultados del Sub-problema B (Ruta por Etapas)")
+    resultado_marketing:   Dict[str, Any] = Field(..., description="Resultados de la Parte II (Optimización de Marketing)")
+
+
+class SolicitudExportarPdf(BaseModel):
+    """
+    Datos necesarios para generar y descargar el reporte técnico en PDF.
+    Incluye los resultados numéricos más el dictamen cualitativo de la IA.
+    """
+    resultado_mochila:      Dict[str, Any] = Field(..., description="Resultados del optimizador de servidores")
+    resultado_enrutamiento:  Dict[str, Any] = Field(..., description="Resultados del optimizador de enrutamiento")
+    resultado_marketing:    Dict[str, Any] = Field(..., description="Resultados del optimizador de marketing")
+    conclusiones_ia:        str            = Field(..., description="Texto del análisis estratégico del CTO (formato Markdown)")
+
+
+# ============================================================
+# ENDPOINTS DE LA API
+# ============================================================
+
+@enrutador.post("/analizar", status_code=status.HTTP_200_OK)
+async def analizar_resultados(solicitud: SolicitudAnalisis):
+    """
+    Envía los resultados cuantitativos a la API de Groq y retorna
+    un análisis cualitativo y estratégico en rol de CTO.
+    Se ejecuta de forma asíncrona para no bloquear el servidor.
     """
     try:
-        conclusions = await GroqService.get_strategic_analysis(
-            knapsack_res=payload.knapsack_result,
-            routing_res=payload.routing_result,
-            marketing_res=payload.marketing_result
+        conclusiones = await ServicioGroq.obtener_analisis_estrategico(
+            resultado_mochila      = solicitud.resultado_mochila,
+            resultado_enrutamiento = solicitud.resultado_enrutamiento,
+            resultado_marketing    = solicitud.resultado_marketing
         )
-        return {"conclusions": conclusions}
-    except Exception as e:
+        return {"conclusiones": conclusiones}
+
+    except Exception as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error al generar análisis con Groq: {str(e)}"
+            detail=f"Error al generar el análisis con Groq: {str(error)}"
         )
 
-@router.post("/export-pdf")
-def export_pdf_report(payload: ExportPdfRequest):
+
+@enrutador.post("/exportar-pdf")
+def exportar_reporte_pdf(solicitud: SolicitudExportarPdf):
     """
-    Genera en tiempo real un reporte formal en PDF y
-    retorna el archivo binario para descarga directa.
+    Genera el reporte técnico formal en PDF con todos los resultados y conclusiones,
+    y lo retorna como un archivo binario descargable.
     """
     try:
-        pdf_bytes = PdfService.generate_report(
-            knapsack_res=payload.knapsack_result,
-            routing_res=payload.routing_result,
-            marketing_res=payload.marketing_result,
-            ai_conclusions=payload.ai_conclusions
+        bytes_pdf = ServicioPdf.generar_reporte(
+            resultado_mochila      = solicitud.resultado_mochila,
+            resultado_enrutamiento = solicitud.resultado_enrutamiento,
+            resultado_marketing    = solicitud.resultado_marketing,
+            conclusiones_ia        = solicitud.conclusiones_ia
         )
-        
-        # Devolver el archivo binario en streaming directo
+
+        # Retornar el PDF como streaming de bytes para descarga directa en el navegador
         return StreamingResponse(
-            io.BytesIO(pdf_bytes),
+            io.BytesIO(bytes_pdf),
             media_type="application/pdf",
             headers={
-                "Content-Disposition": "attachment; filename=NexusCore_Optimization_Report.pdf",
+                "Content-Disposition":         "attachment; filename=NexusCore_Reporte_Optimizacion.pdf",
                 "Access-Control-Expose-Headers": "Content-Disposition"
             }
         )
-    except Exception as e:
+
+    except Exception as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error al exportar reporte a PDF: {str(e)}"
+            detail=f"Error al exportar el reporte PDF: {str(error)}"
         )

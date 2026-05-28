@@ -1,16 +1,17 @@
 /**
  * Cliente API para comunicarse con el servidor backend FastAPI de NexusCore Systems.
+ * Todas las funciones y rutas están en español, siguiendo el estándar del proyecto.
  */
-const BASE_URL = "http://127.0.0.1:8000/api/v1";
+const URL_BASE = "http://127.0.0.1:8000/api/v1";
 
 const API = {
     /**
-     * Comprueba el estado de la API.
+     * Comprueba el estado de la API (Healthcheck).
      */
-    async checkStatus() {
+    async comprobarEstado() {
         try {
-            const response = await fetch("http://127.0.0.1:8000/");
-            if (response.ok) {
+            const respuesta = await fetch("http://127.0.0.1:8000/");
+            if (respuesta.ok) {
                 return true;
             }
             return false;
@@ -21,100 +22,101 @@ const API = {
     },
 
     /**
-     * Resuelve el problema de la mochila para servidores.
+     * Resuelve el Sub-problema A: Carga de Servidores (Mochila).
      */
-    async optimizeKnapsack(capacity, items) {
-        const response = await fetch(`${BASE_URL}/optimize/knapsack`, {
+    async optimizarMochila(capacidad, elementos) {
+        const respuesta = await fetch(`${URL_BASE}/optimizar/mochila`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ capacity, items })
+            body: JSON.stringify({ capacidad, elementos })
         });
-        if (!response.ok) {
-            const err = await response.json();
+        if (!respuesta.ok) {
+            const err = await respuesta.json();
             throw new Error(err.detail || "Error en optimización de servidores.");
         }
-        return await response.json();
+        return await respuesta.json();
     },
 
     /**
-     * Resuelve el problema del camino mínimo Backward por etapas.
+     * Resuelve el Sub-problema B: Enrutamiento por etapas (DP Backward).
      */
-    async optimizeStagecoach(stages, connections) {
-        const response = await fetch(`${BASE_URL}/optimize/stagecoach`, {
+    async optimizarRutaEtapas(etapas, conexiones) {
+        const respuesta = await fetch(`${URL_BASE}/optimizar/ruta-etapas`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ stages, connections })
+            body: JSON.stringify({ etapas, conexiones })
         });
-        if (!response.ok) {
-            const err = await response.json();
+        if (!respuesta.ok) {
+            const err = await respuesta.json();
             throw new Error(err.detail || "Error en enrutamiento por etapas.");
         }
-        return await response.json();
+        return await respuesta.json();
     },
 
     /**
-     * Resuelve la optimización no lineal de mercadeo.
+     * Resuelve la Parte II: Optimización no lineal de mercadeo.
      */
-    async optimizeNonLinear(budget, c1, c2, a1, a2) {
-        const response = await fetch(`${BASE_URL}/optimize/non-linear`, {
+    async optimizarNoLineal(presupuesto, c1, c2, a1, a2) {
+        const respuesta = await fetch(`${URL_BASE}/optimizar/no-lineal`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ budget, c1, c2, a1, a2 })
+            body: JSON.stringify({ presupuesto, c1, c2, a1, a2 })
         });
-        if (!response.ok) {
-            const err = await response.json();
+        if (!respuesta.ok) {
+            const err = await respuesta.json();
             throw new Error(err.detail || "Error en optimización no lineal.");
         }
-        return await response.json();
+        return await respuesta.json();
     },
 
     /**
-     * Genera conclusiones cualitativas de negocio mediante la API de Groq.
+     * Parte III: Genera conclusiones cualitativas de negocio mediante la API de Groq.
      */
-    async getAIAnalysis(knapsackResult, routingResult, marketingResult) {
-        const response = await fetch(`${BASE_URL}/ai/analyze`, {
+    async obtenerAnalisisIA(resultadoMochila, resultadoEnrutamiento, resultadoMarketing) {
+        const respuesta = await fetch(`${URL_BASE}/ia/analizar`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                knapsack_result: knapsackResult,
-                routing_result: routingResult,
-                marketing_result: marketingResult
+                resultado_mochila:      resultadoMochila,
+                resultado_enrutamiento:  resultadoEnrutamiento,
+                resultado_marketing:    resultadoMarketing
             })
         });
-        if (!response.ok) {
-            const err = await response.json();
+        if (!respuesta.ok) {
+            const err = await respuesta.json();
             throw new Error(err.detail || "Error al solicitar análisis de IA.");
         }
-        return await response.json();
+        return await respuesta.json();
     },
 
     /**
-     * Exporta el PDF combinando los resultados numéricos y el reporte cualitativo.
+     * Parte III: Exporta el PDF combinando los resultados numéricos y el reporte cualitativo.
      */
-    async downloadPdfReport(knapsackResult, routingResult, marketingResult, aiConclusions) {
-        const response = await fetch(`${BASE_URL}/ai/export-pdf`, {
+    async descargarReportePdf(resultadoMochila, resultadoEnrutamiento, resultadoMarketing, conclusionesIA) {
+        const respuesta = await fetch(`${URL_BASE}/ia/exportar-pdf`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                knapsack_result: knapsackResult,
-                routing_result: routingResult,
-                marketing_result: marketingResult,
-                ai_conclusions: aiConclusions
+                resultado_mochila:      resultadoMochila,
+                resultado_enrutamiento:  resultadoEnrutamiento,
+                resultado_marketing:    resultadoMarketing,
+                conclusiones_ia:        conclusionesIA
             })
         });
-        if (!response.ok) {
-            throw new Error("No se pudo descargar el reporte PDF.");
+        if (!respuesta.ok) {
+            const err = await respuesta.json();
+            throw new Error(err?.detail || "No se pudo descargar el reporte PDF.");
         }
-        return await response.blob();
+        return await respuesta.blob();
     }
 };
