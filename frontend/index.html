@@ -283,8 +283,12 @@
                         <h2><i data-lucide="sliders-horizontal"></i> Parámetros de Marketing</h2>
                         <p class="desc-text">Establezca los coeficientes de la función no lineal de adquisición mensual de usuarios:</p>
                         <div class="formula-box">
-                            $$f(x_1, x_2) = c_1 x_1 + c_2 x_2 - a_1 x_1^2 - a_2 x_2^2$$
-                            <span>Sujeto a: $x_1 + x_2 \le B$</span>
+                                <p style="margin: 0; color: var(--color-primary); font-size: 1.05rem;">
+                                    <b>f(x₁, x₂) = c₁x₁ + c₂x₂ - a₁x₁² - a₂x₂²</b>
+                                </p>
+                                <p style="margin-top: 5px; color: var(--text-muted);">
+                                    Sujeto a: <b>x₁ + x₂ ≤ B</b>
+                                </p>
                         </div>
                         
                         <div class="form-group">
@@ -341,7 +345,7 @@
                             <div class="mkt-output-bars">
                                 <div class="bar-item">
                                     <div class="bar-labels">
-                                        <span>Campañas Creadores ($x_1$)</span>
+                                        <span>Campañas Creadores (x₁)</span>
                                         <strong id="mkt-x1-val">-</strong>
                                     </div>
                                     <div class="bar-track">
@@ -350,7 +354,7 @@
                                 </div>
                                 <div class="bar-item mt-15">
                                     <div class="bar-labels">
-                                        <span>Anuncios Programáticos ($x_2$)</span>
+                                        <span>Anuncios Programáticos (x₂)</span>
                                         <strong id="mkt-x2-val">-</strong>
                                     </div>
                                     <div class="bar-track">
@@ -415,6 +419,9 @@
             </section>
         </main>
     </div>
+
+    <!-- Contenedor para Notificaciones Modernas -->
+    <div id="toast-container" class="toast-container"></div>
 
     <!-- Scripts (Añadido para corregir el bug crítico) -->
     <script src="js/api.js"></script>

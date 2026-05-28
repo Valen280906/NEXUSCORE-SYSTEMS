@@ -5,6 +5,41 @@
 
 const UI = {
     // ----------------------------------------------------
+    // NOTIFICACIONES TOAST
+    // ----------------------------------------------------
+    mostrarNotificacion(mensaje, tipo = 'info') {
+        let container = document.getElementById("toast-container");
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "toast-container";
+            container.className = "toast-container";
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement("div");
+        toast.className = `toast ${tipo}`;
+        
+        let iconName = "info";
+        if (tipo === "error") iconName = "alert-circle";
+        if (tipo === "warning") iconName = "alert-triangle";
+        if (tipo === "success") iconName = "check-circle";
+
+        toast.innerHTML = `
+            <div class="toast-icon"><i data-lucide="${iconName}"></i></div>
+            <div class="toast-content">${mensaje}</div>
+        `;
+        
+        container.appendChild(toast);
+        if (window.lucide) lucide.createIcons();
+
+        // Eliminar después de 4.5 segundos
+        setTimeout(() => {
+            toast.classList.add("toast-hiding");
+            setTimeout(() => toast.remove(), 300);
+        }, 4500);
+    },
+
+    // ----------------------------------------------------
     // MÓDULO GENERAL / MENÚS
     // ----------------------------------------------------
     mostrarSeccion(sectionId) {
@@ -449,15 +484,15 @@ const UI = {
             descBox.textContent = "No existe un máximo global cerrado (coeficientes nulos o divergentes).";
         } else {
             descBox.innerHTML = `El punto de saturación absoluto ocurre en:<br/>
-            • Creadores ($x_1$): <b>$${(unconstrained.x1 * 1000).toLocaleString('es-ES', {maximumFractionDigits:2})} USD</b><br/>
-            • Anuncios ($x_2$): <b>$${(unconstrained.x2 * 1000).toLocaleString('es-ES', {maximumFractionDigits:2})} USD</b><br/>
+            • Creadores (x₁): <b>$${(unconstrained.x1 * 1000).toLocaleString('es-ES', {maximumFractionDigits:2})} USD</b><br/>
+            • Anuncios (x₂): <b>$${(unconstrained.x2 * 1000).toLocaleString('es-ES', {maximumFractionDigits:2})} USD</b><br/>
             • Presupuesto requerido: <b>$${((unconstrained.x1 + unconstrained.x2) * 1000).toLocaleString('es-ES', {maximumFractionDigits:2})} USD</b>.`;
         }
         
         // Método de Lagrange
         const lagrangeDesc = document.getElementById("mkt-lagrange-desc");
         if (resultado.restriccion_activa && resultado.metodo_lagrange.multiplicador_lambda !== undefined) {
-            lagrangeDesc.innerHTML = `Multiplicador $\\lambda$ = <b>${resultado.metodo_lagrange.multiplicador_lambda}</b><br/>
+            lagrangeDesc.innerHTML = `Multiplicador λ = <b>${resultado.metodo_lagrange.multiplicador_lambda}</b><br/>
             ${resultado.metodo_lagrange.interpretacion}`;
         } else {
             lagrangeDesc.textContent = resultado.metodo_lagrange.nota || "La restricción no está activa. No se aplica Lagrange.";

@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
     iniciarApp();
     configurarEventos();
     verificarSaludBackend();
-    
+
     // Iniciar chequeo periódico cada 6 segundos
     setInterval(verificarSaludBackend, 6000);
 });
@@ -84,14 +84,14 @@ document.addEventListener("DOMContentLoaded", () => {
 function iniciarApp() {
     // Cargar valores por defecto
     restaurarValoresDefecto();
-    
+
     // Mostrar sección inicial (Dashboard)
     UI.mostrarSeccion("dashboard-section");
-    
+
     // Renderizar inputs iniciales
     UI.renderizarInputsMochila(ESTADO.mochila.elementos);
     UI.renderizarInputsEnrutamiento(ESTADO.enrutamiento.etapas, ESTADO.enrutamiento.conexiones);
-    
+
     // Rellenar inputs de marketing en el HTML
     document.getElementById("mkt-budget").value = ESTADO.marketing.presupuesto;
     document.getElementById("mkt-c1").value = ESTADO.marketing.c1;
@@ -116,7 +116,7 @@ function configurarEventos() {
         btn.addEventListener("click", (e) => {
             const target = btn.getAttribute("data-target");
             UI.mostrarSeccion(target);
-            
+
             // Si entramos a la sección de enrutamiento, redibujamos el canvas para evitar distorsiones
             if (target === "routing-section" && ESTADO.resultados.enrutamiento) {
                 setTimeout(() => {
@@ -149,25 +149,25 @@ function configurarEventos() {
 
             // 1. Optimizar Carga de Servidores
             await ejecutarOptimizacionMochila();
-            
+
             // 2. Optimizar Enrutamiento
             await ejecutarOptimizacionEnrutamiento();
-            
+
             // 3. Optimizar Presupuesto
             await ejecutarOptimizacionMarketing();
-            
+
             // Ir a la pestaña de reportes
             UI.mostrarSeccion("report-section");
-            
+
             // 4. Solicitar IA automáticamente
             await ejecutarAnalisisIA();
 
             btn.innerHTML = `<i data-lucide="zap"></i> Optimizar Todo`;
             btn.removeAttribute("disabled");
             lucide.createIcons();
-            
+
         } catch (error) {
-            alert(`Error en optimización global: ${error.message}`);
+            UI.mostrarNotificacion(`Error en optimización global: ${error.message}`, "error");
             console.error(error);
             const btn = document.getElementById("btn-global-optimize");
             btn.innerHTML = `<i data-lucide="zap"></i> Optimizar Todo`;
@@ -179,16 +179,16 @@ function configurarEventos() {
     // Acción "Valores por Defecto"
     document.getElementById("btn-reset-defaults").addEventListener("click", () => {
         iniciarApp();
-        alert("Se han restaurado los valores académicos por defecto de NexusCore Systems.");
+        UI.mostrarNotificacion("Se han restaurado los valores por defecto.", "success");
     });
 
     // --- SECCIÓN A: MOCHILA (SERVIDORES) ---
     // Botón Agregar Microservicio
     document.getElementById("btn-add-ms").addEventListener("click", () => {
-        const nextId = ESTADO.mochila.elementos.length > 0 
-            ? Math.max(...ESTADO.mochila.elementos.map(item => item.id)) + 1 
+        const nextId = ESTADO.mochila.elementos.length > 0
+            ? Math.max(...ESTADO.mochila.elementos.map(item => item.id)) + 1
             : 1;
-        
+
         ESTADO.mochila.elementos.push({
             id: nextId,
             nombre: `Microservicio Nuevo`,
@@ -203,7 +203,7 @@ function configurarEventos() {
     msTable.addEventListener("change", (e) => {
         const index = parseInt(e.target.getAttribute("data-index"));
         if (isNaN(index)) return;
-        
+
         if (e.target.classList.contains("ms-name-input")) {
             ESTADO.mochila.elementos[index].nombre = e.target.value;
         } else if (e.target.classList.contains("ms-weight-input")) {
@@ -217,7 +217,7 @@ function configurarEventos() {
     msTable.addEventListener("click", (e) => {
         const btn = e.target.closest(".btn-remove-row");
         if (!btn) return;
-        
+
         const index = parseInt(btn.getAttribute("data-index"));
         ESTADO.mochila.elementos.splice(index, 1);
         UI.renderizarInputsMochila(ESTADO.mochila.elementos);
@@ -227,12 +227,12 @@ function configurarEventos() {
     document.getElementById("btn-optimize-knap").addEventListener("click", async () => {
         const capInput = parseInt(document.getElementById("knap-capacity").value);
         ESTADO.mochila.capacidad = isNaN(capInput) ? 16 : capInput;
-        
+
         try {
             await ejecutarOptimizacionMochila();
-            alert("¡Optimización de servidores completada con éxito!");
+            UI.mostrarNotificacion("¡Optimización de servidores completada con éxito!", "success");
         } catch (error) {
-            alert(`Error al optimizar: ${error.message}`);
+            UI.mostrarNotificacion(`Error al optimizar: ${error.message}`, "error");
         }
     });
 
@@ -243,15 +243,15 @@ function configurarEventos() {
         if (e.target.classList.contains("stage-nodes-input")) {
             const index = parseInt(e.target.getAttribute("data-index"));
             const nodes = e.target.value.split(",").map(n => n.trim()).filter(n => n !== "");
-            
+
             if (nodes.length === 0) {
-                alert("Una etapa debe contener al menos un nodo.");
+                UI.mostrarNotificacion("Una etapa debe contener al menos un nodo.", "warning");
                 UI.renderizarInputsEnrutamiento(ESTADO.enrutamiento.etapas, ESTADO.enrutamiento.conexiones);
                 return;
             }
-            
+
             ESTADO.enrutamiento.etapas[index] = nodes;
-            
+
             // Re-sincronizar conexiones eliminando nodos que ya no existen
             sanearConexiones();
             UI.renderizarInputsEnrutamiento(ESTADO.enrutamiento.etapas, ESTADO.enrutamiento.conexiones);
@@ -265,12 +265,12 @@ function configurarEventos() {
             const fromNode = e.target.getAttribute("data-from");
             const toNode = e.target.getAttribute("data-to");
             const value = parseFloat(e.target.value);
-            
+
             if (isNaN(value) || value < 0) {
-                alert("La latencia debe ser un número positivo.");
+                UI.mostrarNotificacion("La latencia debe ser un número positivo.", "warning");
                 return;
             }
-            
+
             if (!ESTADO.enrutamiento.conexiones[fromNode]) {
                 ESTADO.enrutamiento.conexiones[fromNode] = {};
             }
@@ -282,9 +282,9 @@ function configurarEventos() {
     document.getElementById("btn-optimize-routing").addEventListener("click", async () => {
         try {
             await ejecutarOptimizacionEnrutamiento();
-            alert("¡Ruta crítica por etapas calculada correctamente!");
+            UI.mostrarNotificacion("¡Ruta crítica por etapas calculada correctamente!", "success");
         } catch (error) {
-            alert(`Error en ruta crítica: ${error.message}`);
+            UI.mostrarNotificacion(`Error en ruta crítica: ${error.message}`, "error");
         }
     });
 
@@ -297,11 +297,11 @@ function configurarEventos() {
             ESTADO.marketing.a1 = parseFloat(document.getElementById("mkt-a1").value) || 0.2;
             ESTADO.marketing.c2 = parseFloat(document.getElementById("mkt-c2").value) || 5.0;
             ESTADO.marketing.a2 = parseFloat(document.getElementById("mkt-a2").value) || 0.3;
-            
+
             await ejecutarOptimizacionMarketing();
-            alert("¡Optimización de presupuesto no lineal completada!");
+            UI.mostrarNotificacion("¡Optimización de presupuesto no lineal completada!", "success");
         } catch (error) {
-            alert(`Error al optimizar presupuesto: ${error.message}`);
+            UI.mostrarNotificacion(`Error al optimizar presupuesto: ${error.message}`, "error");
         }
     });
 
@@ -310,36 +310,36 @@ function configurarEventos() {
     document.getElementById("btn-request-ai").addEventListener("click", async () => {
         // Validar que tengamos los 3 resultados matemáticos
         if (!ESTADO.resultados.mochila || !ESTADO.resultados.enrutamiento || !ESTADO.resultados.marketing) {
-            alert("Primero debe calcular los tres problemas matemáticos de optimización (puede presionar 'Optimizar Todo' en la cabecera).");
+            UI.mostrarNotificacion("Primero debe calcular los tres problemas matemáticos de optimización (puede presionar 'Optimizar Todo' en la cabecera).", "warning");
             return;
         }
-        
+
         try {
             await ejecutarAnalisisIA();
         } catch (error) {
-            alert(`Error en IA: ${error.message}`);
+            UI.mostrarNotificacion(`Error en IA: ${error.message}`, "error");
         }
     });
 
     // Descargar Reporte PDF
     document.getElementById("btn-download-pdf").addEventListener("click", async () => {
         if (!ESTADO.resultados.mochila || !ESTADO.resultados.enrutamiento || !ESTADO.resultados.marketing || !ESTADO.resultados.conclusionesIA) {
-            alert("Se requieren todos los resultados cuantitativos y cualitativos para generar el reporte PDF consolidado.");
+            UI.mostrarNotificacion("Se requieren todos los resultados cuantitativos y cualitativos para generar el reporte PDF.", "warning");
             return;
         }
-        
+
         try {
             const btn = document.getElementById("btn-download-pdf");
             btn.innerHTML = `<div class="spinner" style="width:12px; height:12px; margin:0"></div> Descargando...`;
             btn.setAttribute("disabled", "true");
-            
+
             const pdfBlob = await API.descargarReportePdf(
                 ESTADO.resultados.mochila,
                 ESTADO.resultados.enrutamiento,
                 ESTADO.resultados.marketing,
                 ESTADO.resultados.conclusionesIA
             );
-            
+
             // Disparar descarga en navegador
             const url = window.URL.createObjectURL(pdfBlob);
             const a = document.createElement("a");
@@ -349,13 +349,13 @@ function configurarEventos() {
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
-            
+
             btn.innerHTML = `<i data-lucide="download"></i> Descargar Reporte Completo (PDF)`;
             btn.removeAttribute("disabled");
             lucide.createIcons();
-            
+
         } catch (error) {
-            alert(`Error al descargar el PDF: ${error.message}`);
+            UI.mostrarNotificacion(`Error al descargar el PDF: ${error.message}`, "error");
             const btn = document.getElementById("btn-download-pdf");
             btn.innerHTML = `<i data-lucide="download"></i> Descargar Reporte Completo (PDF)`;
             btn.removeAttribute("disabled");
@@ -368,7 +368,7 @@ function configurarEventos() {
 function sanearConexiones() {
     const allNodes = new Set(ESTADO.enrutamiento.etapas.flat());
     const sanitized = {};
-    
+
     for (const fromNode in ESTADO.enrutamiento.conexiones) {
         if (allNodes.has(fromNode)) {
             sanitized[fromNode] = {};
@@ -382,12 +382,12 @@ function sanearConexiones() {
             }
         }
     }
-    
+
     // Si faltan aristas entre etapas contiguas, creamos aristas vacías (costo = 5.0 por defecto) para mantener conectividad
     for (let s = 0; s < ESTADO.enrutamiento.etapas.length - 1; s++) {
         const fromNodes = ESTADO.enrutamiento.etapas[s];
-        const toNodes = ESTADO.enrutamiento.etapas[s+1];
-        
+        const toNodes = ESTADO.enrutamiento.etapas[s + 1];
+
         fromNodes.forEach(fromNode => {
             toNodes.forEach(toNode => {
                 if (!sanitized[fromNode]) sanitized[fromNode] = {};
@@ -397,7 +397,7 @@ function sanearConexiones() {
             });
         });
     }
-    
+
     ESTADO.enrutamiento.conexiones = sanitized;
 }
 
